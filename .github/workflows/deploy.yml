@@ -1,41 +1,29 @@
-name: Deploy to Server
+name: Deploy URInvited
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Deploy via rsync
-        env:
-          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-        run: |
-          mkdir -p ~/.ssh
-          echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts 2>/dev/null
-          rsync -avz \
-            --exclude='.git' \
-            --exclude='.github' \
-            --exclude='.claude' \
-            --exclude='.DS_Store' \
-            --exclude='.gitignore' \
-            --exclude='chip-video.mp4' \
-            -e "ssh -i ~/.ssh/deploy_key" \
-            ./ "$DEPLOY_USER@$DEPLOY_HOST:/var/www/html/URInvited/"
-          rm ~/.ssh/deploy_key
-
-      - name: Verify deployment
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-        run: |
-          echo "✅ Deployment complete!"
-          echo "Live at: http://$DEPLOY_HOST/URInvited/"
+      - name: Deploy via rsync over SSH
+        uses: easingthemes/ssh-deploy@v5.1.0
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.DO_SSH_PRIVATE_KEY }}
+          REMOTE_HOST: 64.227.108.128
+          REMOTE_USER: root
+          TARGET: /var/www/html/URInvited/
+          EXCLUDE: >-
+            .git/,
+            .github/,
+            .gitignore,
+            .DS_Store,
+            .claude/,
+            chip-video.mp4,
+            deploy.sh,
+            *.md
