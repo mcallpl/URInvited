@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phil's 90th Birthday Celebration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --gold: #D4AF37;
+            --dark: #1a1a1a;
+            --cream: #F5F1E8;
+            --gold-light: #E8D5A8;
+            --accent: #B8860B;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: Arial, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--dark) 0%, #2a2a2a 100%);
+            color: var(--cream);
+            overflow-x: hidden;
+            line-height: 1.9;
+            font-size: 18px;
+        }
+
+        /* Confetti Animation */
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-10px) rotateZ(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotateZ(720deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .confetti {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: var(--gold);
+            pointer-events: none;
+            z-index: 1;
+            animation: confetti-fall linear forwards;
+        }
+
+        .confetti.gold { background: var(--gold); }
+        .confetti.cream { background: var(--cream); }
+        .confetti.dark { background: var(--dark); }
+
+        /* Header Navigation */
+        header {
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(26, 26, 26, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--gold);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-family: Arial, Verdana, sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gold);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        nav a {
+            color: var(--cream);
+            text-decoration: none;
+            margin: 0 1.5rem;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gold);
+            transition: width 0.3s ease;
+        }
+
+        nav a:hover::after {
+            width: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+            top: -200px;
+            right: -200px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 70%);
+            bottom: -150px;
+            left: -150px;
+            animation: float 8s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) translateX(0px); }
+            50% { transform: translateY(20px) translateX(-10px); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            animation: slideInDown 1s ease-out;
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .surprise-badge {
+            display: inline-block;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--dark);
+            background: var(--gold);
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            margin-bottom: 2rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        @keyframes borderFlash {
+            0%, 100% { border-color: var(--gold); box-shadow: 0 0 20px rgba(212, 175, 55, 0.6); }
+            50% { border-color: var(--gold-light); box-shadow: 0 0 40px rgba(212, 175, 55, 1); }
+        }
+
+        h1 {
+            font-family: Arial, Verdana, sans-serif;
+            font-size: clamp(3rem, 10vw, 5.5rem);
+            font-weight: 700;
+            color: var(--gold);
+            margin: 1rem 0;
+            line-height: 1.1;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .subtitle {
+            font-family: Arial, Verdana, sans-serif;
+            font-size: 2.5rem;
+            color: var(--gold-light);
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .tagline {
+            font-size: 1.8rem;
+            color: var(--cream);
+            max-width: 700px;
+            margin: 2rem auto;
+            line-height: 1.9;
+            font-weight: 600;
+        }
+
+        /* Events Section */
+        .events {
+            padding: 5rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-family: Arial, Verdana, sans-serif;
+            font-size: 3.5rem;
+            color: var(--gold);
+            text-align: center;
+            margin-bottom: 3rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+        }
+
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .event-card {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(184, 134, 11, 0.1) 100%);
+            border: 2px solid var(--gold);
+            border-radius: 12px;
+            padding: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        .event-card:nth-child(1) { animation-delay: 0.2s; }
+        .event-card:nth-child(2) { animation-delay: 0.4s; }
+        .event-card:nth-child(3) { animation-delay: 0.6s; }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .event-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--gold) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .event-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--gold-light);
+            box-shadow: 0 20px 40px rgba(212, 175, 55, 0.2);
+        }
+
+        .event-card:hover::before {
+            opacity: 0.05;
+        }
+
+        .event-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .event-date {
+            font-family: Arial, Verdana, sans-serif;
+            font-size: 2.5rem;
+            color: var(--gold);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .event-time {
+            font-family: Arial, Verdana, sans-serif;
+            font-size: 1.2rem;
+            color: var(--gold-light);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .event-title {
+            font-family: Arial, Verdana, sans-serif;
+            font-size: 2rem;
+            color: var(--cream);
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .event-location {
+            font-family: Arial, Verdana, sans-serif;
+            font-size: 1.2rem;
+            color: var(--cream);
+            opacity: 0.9;
+        }
+
+        /* Venue Section */
+        .venue {
+            padding: 5rem 2rem;
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, transparent 100%);
+            margin: 2rem 0;
+        }
+
+        .venue-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .venue-info h3 {
+            font-family: Arial, Verdana, sans-serif;
+            font-size: 2.5rem;
+            color: var(--gold);
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+
+        .venue-info p {
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            color: var(--cream);
+            line-height: 1.9;
+        }
+
+        .venue-details {
+            background: rgba(212, 175, 55, 0.1);
+            border-left: 4px solid var(--gold);
+            padding: 2rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+
+        .venue-details strong {
+            color: var(--gold);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .btn-directions {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--gold) 0%, var(--accent) 100%);
+            color: var(--dark);
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            border: 2px solid var(--gold);
+            margin-top: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-directions:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
+        }
+
+        .venue-map {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 3px solid var(--gold);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .venue-map iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Video Upload Section */
+        .video-section {
+            padding: 4rem 2rem;
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(184, 134, 11, 0.1) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-alert {
+            max-width: 900px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, var(--dark) 0%, #2a2a2a 100%);
+            border: 3px solid var(--gold);
+            border-radius: 12px;
+            padding: 2.5rem;
+            position: relative;
+            animation: borderFlash 1.5s ease-in-out infinite;
+        }
+
+        .alert-badge {
+            display: inline-block;
+            background: var(--gold);
+            color: var(--dark);
+            padding: 1.2rem 2rem;
+            border-radius: 50px;
+            font-family: Arial, Verdana, sans-serif;
+            font-weight: 700;
+            font-size: 1.3rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 1.5rem;
+            animation: flash 1.5s ease-in-out infinite;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .alert-badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4);
+        }
+
+        .video-alert h3 {
+            font-family: Arial, Verdana, sans-serif;
+            font-size: 2.5rem;
+            color: var(--gold);
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .deadline {
+            font-size: 2.5rem;
+            color: var(--gold);
+            margin-bottom: 2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .video-alert p {
+            font-size: 1.1rem;
+            color: var(--cream);
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+        }
+
+        .video-instructions {
+            background: rgba(212, 175, 55, 0.1);
+            border-left: 4px solid var(--gold);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+
+        .video-instructions ol {
+            margin-left: 1.5rem;
+            color: var(--cream);
+        }
+
+        .video-instructions li {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .video-instructions strong {
+            color: var(--gold);
+        }
+
+        .video-contact {
+            background: rgba(212, 175, 55, 0.1);
+            border: 2px solid var(--gold);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+
+        .video-contact p {
+            margin: 0.5rem 0;
+        }
+
+        .video-label {
+            color: var(--gold);
+            font-family: Arial, Verdana, sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .video-email {
+            color: var(--cream);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        /* Contact Section */
+        .contact {
+            padding: 5rem 2rem;
+        }
+
+        .contact-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .contact h2 {
+            font-family: Arial, Verdana, sans-serif;
+            font-size: 3.2rem;
+            color: var(--gold);
+            text-align: center;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .contact-intro {
+            text-align: center;
+            font-size: 1.3rem;
+            color: var(--cream);
+            margin-bottom: 3rem;
+            font-weight: 500;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-family: Arial, Verdana, sans-serif;
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 1rem;
+            font-family: Arial, Verdana, sans-serif;
+            background: rgba(245, 241, 232, 0.05);
+            border: 2px solid var(--gold);
+            color: var(--cream);
+            border-radius: 8px;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: rgba(245, 241, 232, 0.5);
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            background: rgba(245, 241, 232, 0.1);
+            border-color: var(--gold-light);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .phone-info {
+            background: rgba(212, 175, 55, 0.1);
+            border: 2px solid var(--gold);
+            padding: 2rem;
+            border-radius: 8px;
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .phone-info p {
+            margin: 1rem 0;
+            font-size: 1.1rem;
+        }
+
+        .phone-label {
+            color: var(--gold);
+            font-family: Arial, Verdana, sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .phone-number {
+            color: var(--cream);
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1.2rem;
+            background: linear-gradient(135deg, var(--gold) 0%, var(--accent) 100%);
+            color: var(--dark);
+            border: none;
+            border-radius: 8px;
+            font-family: Arial, Verdana, sans-serif;
+            font-weight: 700;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(-1px);
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(26, 26, 26, 0.9);
+            border-top: 2px solid var(--gold);
+            padding: 3rem 2rem;
+            text-align: center;
+            color: var(--cream);
+        }
+
+        .footer-content h3 {
+            font-family: Arial, Verdana, sans-serif;
+            color: var(--gold);
+            margin-bottom: 1rem;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .footer-content p {
+            margin: 0.5rem 0;
+            font-size: 1.2rem;
+        }
+
+        .footer-tagline {
+            margin-top: 2rem;
+            color: var(--gold);
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        /* Photo Gallery Section */
+        .photo-gallery {
+            padding: 5rem 2rem;
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, transparent 100%);
+        }
+
+        /* Video Message Section */
+        .video-message-section {
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, transparent 100%);
+            text-align: center;
+        }
+
+        .video-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .video-container video {
+            width: 100%;
+            max-width: 800px;
+            border: 4px solid var(--gold);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .deadline-alert {
+            background: var(--gold);
+            color: var(--dark);
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+            font-weight: 700;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .gallery-title {
+            font-family: Arial, Verdana, sans-serif;
+            font-size: 3rem;
+            color: var(--gold);
+            text-align: center;
+            margin-bottom: 3rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .gallery-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .gallery-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            aspect-ratio: 4/3;
+            border: 3px solid var(--gold);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            transition: all 0.4s ease;
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        .gallery-item:nth-child(1) { animation-delay: 0.1s; }
+        .gallery-item:nth-child(2) { animation-delay: 0.2s; }
+        .gallery-item:nth-child(3) { animation-delay: 0.3s; }
+        .gallery-item:nth-child(4) { animation-delay: 0.4s; }
+        .gallery-item:nth-child(5) { animation-delay: 0.5s; }
+        .gallery-item:nth-child(6) { animation-delay: 0.6s; }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .gallery-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 15px 50px rgba(212, 175, 55, 0.3);
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.05);
+        }
+
+        /* Modal Styles */
+        .video-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .video-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: var(--dark);
+            border: 3px solid var(--gold);
+            border-radius: 12px;
+            position: relative;
+            width: 95%;
+            max-width: 1000px;
+            height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(212, 175, 55, 0.5);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 2rem;
+            color: var(--gold);
+            background: none;
+            border: none;
+            cursor: pointer;
+            z-index: 1001;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            transform: scale(1.2);
+            color: var(--gold-light);
+        }
+
+        .modal-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+
+            nav {
+                display: flex;
+                gap: 1rem;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            nav a {
+                margin: 0 0.8rem;
+            }
+
+            .venue-content {
+                grid-template-columns: 1fr;
+            }
+
+            .venue-map {
+                aspect-ratio: 1.5;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .event-date {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="logo">Phil McAllister's 90th</div>
+        <nav>
+            <a href="#photos">Photos</a>
+            <a href="#events">Events</a>
+            <a href="#videos">📹 Videos</a>
+            <a href="#venue">Venue</a>
+            <a href="#contact">Questions?</a>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <span class="surprise-badge">🎉 SHHHHH... IT'S A SURPRISE! 🎉</span>
+            <h1>Phil's 90th Birthday</h1>
+            <p class="subtitle">A Celebration of Nine Decades</p>
+            <p class="tagline">Join us for a special weekend celebrating Phil McAllister's incredible life and legacy. This milestone birthday brings the entire McAllister family together for celebration, laughter, love, and reconnection with generations of family.</p>
+        </div>
+    </section>
+
+    <!-- Photo Section -->
+    <!-- Video Message Section -->
+    <section class="video-message-section">
+        <div class="video-container">
+            <video controls width="100%">
+                <source src="chip-video.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <div class="deadline-alert">
+                ⏰ LAST DAY TO SUBMIT: MAY 20, 2026
+            </div>
+        </div>
+    </section>
+
+    <section class="photo-gallery" id="photos">
+        <h2 class="gallery-title">Phil's 90th</h2>
+        <div style="max-width: 600px; margin: 0 auto; border-radius: 16px; overflow: hidden; border: 4px solid var(--gold); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);">
+            <img src="images/uncle-phil.jpg" alt="Phil McAllister 90th Birthday" style="width: 100%; height: auto; display: block;">
+        </div>
+    </section>
+
+    <!-- Events Section -->
+    <section class="events" id="events">
+        <h2 class="section-title">Celebration Weekend</h2>
+        <div class="events-grid">
+            <div class="event-card">
+                <div class="event-content">
+                    <div class="event-date">June 5</div>
+                    <div class="event-time">6:00 PM</div>
+                    <h3 class="event-title">Family Fun Night</h3>
+                    <p class="event-location">McAllister Cousin Reunion Kick-Off<br>Location: TBD (Details Coming Soon)</p>
+                </div>
+            </div>
+
+            <a href="#bbq-venue" style="text-decoration: none; color: inherit;">
+                <div class="event-card" style="cursor: pointer;">
+                    <div class="event-content">
+                        <div class="event-date">June 6</div>
+                        <div class="event-time">2:00 PM</div>
+                        <h3 class="event-title">Backyard BBQ</h3>
+                        <p class="event-location">McAllister Family Gathering<br>Aunt Marilyn's House<br>Concord, CA</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="#birthday-venue" style="text-decoration: none; color: inherit;">
+                <div class="event-card" style="cursor: pointer;">
+                    <div class="event-content">
+                        <div class="event-date">June 7</div>
+                        <div class="event-time">12:00 PM</div>
+                        <h3 class="event-title">Phil's 90th Birthday Party</h3>
+                        <p class="event-location">Acalanes Fellowship Lodge<br>Lafayette, CA</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <!-- Video Upload Section -->
+    <section class="video-section" id="videos">
+        <div class="video-alert">
+            <span class="alert-badge">⏰ DEADLINE: MAY 20, 2026</span>
+            <h3>🎥 Share Your Video Message!</h3>
+            <p class="deadline">Submit Your Video Tribute for Phil</p>
+
+            <p style="font-size: 1.3rem; margin-bottom: 2rem; line-height: 1.8;">We're creating a special video tribute for Phil! Record a short message with your birthday wishes, favorite memories, or well-wishes.</p>
+
+            <div style="margin: 3rem 0; text-align: center;">
+                <button onclick="openVideoModal()" class="btn-video-create" style="font-size: 1.4rem; padding: 2rem 4rem; background: linear-gradient(135deg, var(--gold) 0%, var(--accent) 100%); color: var(--dark); border: none; border-radius: 50px; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.1em; transition: all 0.3s ease; box-shadow: 0 10px 40px rgba(212, 175, 55, 0.3); display: inline-block;">
+                    ▶️ CREATE YOUR VIDEO NOW
+                </button>
+                <p style="font-size: 1rem; color: var(--gold-light); margin-top: 1rem;">Click above to record and upload directly. It's fast, easy, and seamless!</p>
+            </div>
+
+            <div class="video-instructions">
+                <strong style="font-size: 1.1rem; display: block; margin-bottom: 1rem;">Quick Tips:</strong>
+                <ol style="font-size: 1rem;">
+                    <li>Record a short video message (30 seconds to 2 minutes is perfect)</li>
+                    <li>Say your name and your relationship to Phil</li>
+                    <li>Share your birthday wishes, favorite memories, or well-wishes</li>
+                </ol>
+            </div>
+        </div>
+    </section>
+
+    <!-- Video Modal -->
+    <div id="videoModal" class="video-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeVideoModal()">✕</button>
+            <iframe id="mementoIframe" class="modal-iframe" src="https://app.memento.com/phillip-mcallisters-90th-birthday/JYl8N7dLVr/record"></iframe>
+        </div>
+    </div>
+
+    <!-- Venue Section -->
+    <section class="venue" id="venue">
+        <!-- June 6 BBQ Venue -->
+        <div class="venue-content" id="bbq-venue">
+            <div class="venue-info">
+                <h3>June 6 — Backyard BBQ</h3>
+                <p>Join us for the McAllister Family Gathering at Aunt Marilyn's house in Concord. A casual afternoon of food, fun, and family bonding to kick off the celebration weekend!</p>
+
+                <div class="venue-details">
+                    <strong>📍 Address</strong><br>
+                    4406 Black Walnut Court<br>
+                    Concord, CA 94521<br><br>
+                </div>
+
+                <a href="https://maps.google.com/?q=4406+Black+Walnut+Court+Concord+CA+94521" target="_blank" class="btn-directions">Get Directions</a>
+            </div>
+
+            <div class="venue-map">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.0!2d-122.0309!3d37.9808!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x808558c5d5d5d5d5%3A0x1234567890abcdef!2s4406%20Black%20Walnut%20Court%2C%20Concord%2C%20CA%2094521!5e0!3m2!1sen!2sus!4v1234567890" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+        </div>
+
+        <hr style="margin: 4rem 0; border: none; border-top: 2px solid var(--gold); opacity: 0.3;">
+
+        <!-- June 7 Birthday Party Venue -->
+        <div class="venue-content" id="birthday-venue">
+            <div class="venue-info">
+                <h3>June 7 — Phil's 90th Birthday Party</h3>
+                <p>Join us for Phil's special milestone birthday celebration at the beautiful Acalanes Fellowship Lodge in Lafayette. This historic venue provides the perfect setting to honor a life well-lived and celebrate surrounded by family and loved ones.</p>
+
+                <div class="venue-details">
+                    <strong>📍 Address</strong><br>
+                    Acalanes Fellowship Lodge #480<br>
+                    925 Moraga Road<br>
+                    Lafayette, CA 94549<br><br>
+                    <strong>📞 Venue Phone</strong><br>
+                    (925) 283-3266
+                </div>
+
+                <a href="https://maps.google.com/?q=925+Moraga+Road+Lafayette+CA+94549" target="_blank" class="btn-directions">Get Directions</a>
+            </div>
+
+            <div class="venue-map">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3154.847521646835!2d-122.10046!3d37.89834!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x808583f4d3c8e3c5%3A0x1234567890abcdef!2s925%20Moraga%20Road%2C%20Lafayette%2C%20CA%2094549!5e0!3m2!1sen!2sus!4v1234567890" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact" id="contact">
+        <div class="contact-container">
+            <h2>Have Questions?</h2>
+            <p class="contact-intro">We'd love to hear from you! Reach out with any questions about the weekend celebration.</p>
+
+            <div class="phone-info">
+                <p>
+                    <span class="phone-label">Contact Chip</span><br>
+                    <span class="phone-number">(949) 735-9415</span>
+                </p>
+                <p>
+                    <span class="phone-label">Contact Nicole</span><br>
+                    <span class="phone-number">(916) 539-7161</span>
+                </p>
+            </div>
+
+            <form id="contactForm">
+                <div class="form-group">
+                    <label for="name">Your Name</label>
+                    <input type="text" id="name" name="name" required placeholder="How should we know you?">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" required placeholder="your@email.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Your Question or Message</label>
+                    <textarea id="message" name="message" required placeholder="Tell us how we can help..."></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn">Send Message</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <h3>Phil's 90th Birthday</h3>
+            <p>June 5-7, 2026</p>
+            <p class="footer-tagline">Celebrating 90 Years of an Incredible Life</p>
+        </div>
+    </footer>
+
+    <script>
+        // Video Modal Functions
+        function openVideoModal() {
+            document.getElementById('videoModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeVideoModal() {
+            document.getElementById('videoModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal when clicking outside the modal content
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('videoModal');
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeVideoModal();
+                }
+            });
+
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeVideoModal();
+                }
+            });
+        });
+
+        // Confetti Animation on Load
+        function createConfetti() {
+            const colors = ['gold', 'cream', 'dark'];
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = `confetti ${colors[Math.floor(Math.random() * colors.length)]}`;
+                confetti.style.left = Math.random() * window.innerWidth + 'px';
+                confetti.style.top = '-10px';
+                confetti.style.animationDuration = (Math.random() * 2 + 3) + 's';
+                confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                document.body.appendChild(confetti);
+
+                setTimeout(() => confetti.remove(), 5000);
+            }
+        }
+
+        // Trigger confetti on load and on scroll
+        window.addEventListener('load', createConfetti);
+
+        let lastConfettiTime = 0;
+        window.addEventListener('scroll', () => {
+            const now = Date.now();
+            if (now - lastConfettiTime > 3000) {
+                if (Math.random() < 0.3) {
+                    createConfetti();
+                    lastConfettiTime = now;
+                }
+            }
+        });
+
+        // Form Handling
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const message = document.getElementById('message').value;
+
+            // Create mailto link
+            const subject = "Question about Phil's 90th Birthday Celebration";
+            const body = `Hi Chip or Nicole,\n\nMy name is ${name}.\n\n${message}\n\nYou can reach me at: ${email}\n\nThanks!`;
+            const mailtoLink = `mailto:Chip@ChipAndKim.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+            window.location.href = mailtoLink;
+
+            // Reset form
+            this.reset();
+        });
+
+        // Smooth scroll behavior for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
