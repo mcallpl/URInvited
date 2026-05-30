@@ -24,6 +24,5 @@ jobs:
             .gitignore,
             .DS_Store,
             .claude/,
-            chip-video.mp4,
             deploy.sh,
             *.md
