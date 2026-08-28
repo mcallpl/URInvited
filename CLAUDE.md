@@ -131,18 +131,33 @@ for one, and do not claim a deploy happened. Hand the command back to the user.
 Two paths that do work:
 
 1. The user runs `./deploy.sh` from a machine holding the key.
-2. Restore CI deploy. `.github/workflows/deploy.yml` was deleted in July 2026
-   ("app is no longer deployed") but the site clearly is deployed again. The
-   old workflow used `easingthemes/ssh-deploy@v5.1.0` with a repo secret
-   `DO_SSH_PRIVATE_KEY`; recover it with
-   `git show 52178a8^:.github/workflows/deploy.yml`. GitHub's runners have
-   both SSH and network access, so this makes push-to-deploy work without any
-   key ever touching a Claude container.
+2. CI. `.github/workflows/deploy.yml` runs on push to `main` and on manual
+   dispatch, using `easingthemes/ssh-deploy@v5.1.0` and the repo secret
+   `DO_SSH_PRIVATE_KEY`. GitHub's runners have SSH and network access, so
+   push-to-deploy works without any key touching a Claude container.
 
-   Note a discrepancy before reusing it: the old workflow targeted
-   `/var/www/html/URInvited/` while `deploy.sh` targets
-   `/var/www/html/urinvited` (lowercase). On Linux those are different
-   directories. Confirm which one nginx serves before trusting either.
+   It was deleted in July 2026 as "app is no longer deployed" and restored in
+   August. **The original could never have worked:** it passed the key as
+   `sshPrivateKey`, but the action's input is `SSH_PRIVATE_KEY` (verified
+   against its `action.yml`), and Actions matches input names exactly rather
+   than fuzzily. That is the likely reason CI deploys appeared broken and the
+   workflow got dropped in favour of `deploy.sh`.
+
+### The unconfirmed target directory
+
+The old workflow targeted `/var/www/html/URInvited/`; `deploy.sh` targets
+`/var/www/html/urinvited`. On Linux those are different directories and nobody
+has confirmed which nginx serves. Until that is settled the workflow:
+
+- reads `TARGET` from the repo variable `DEPLOY_TARGET`, defaulting to the
+  lowercase path, so it is fixable without a code change;
+- keeps `ARGS` at the action's default (`-rlgoDzvc -i`), which has **no**
+  `--delete`, so a wrong path is useless rather than destructive;
+- runs a `SCRIPT_BEFORE` that lists `/var/www/html` and greps the nginx config
+  for `urinvited`, so the job log names the real directory.
+
+Read that log after a run, set `DEPLOY_TARGET`, and only then consider adding
+`--delete` so repo deletions propagate.
 
 ## Open decisions
 
