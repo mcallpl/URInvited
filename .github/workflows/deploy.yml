@@ -7,24 +7,19 @@
 # deploy could not have worked. That is very likely why it was removed as
 # "app is no longer deployed". Fixed here.
 #
-# The served directory is not yet confirmed: this workflow's predecessor
-# targeted /var/www/html/URInvited/ while deploy.sh targets
-# /var/www/html/urinvited, and those are different directories on Linux.
-# Until that is settled:
+# The site has its own document root, /var/www/urinvited, served only by the
+# urinvited.peoplestar.com vhost. It deliberately does NOT live under
+# /var/www/html any more: the old location was also served at
+# webapps.peoplestar.com/URInvited/, which has no auth of its own and would
+# therefore expose the private workspace. Keeping the roots separate means
+# that even an unpatched webapps vhost cannot serve it.
 #
-#   * TARGET comes from the repository variable DEPLOY_TARGET, so it can be
-#     corrected without editing this file (Settings > Secrets and variables >
-#     Actions > Variables). It falls back to deploy.sh's lowercase path,
-#     which is the one most recently used by hand.
+# TARGET is still overridable via the DEPLOY_TARGET repository variable
+# (Settings > Secrets and variables > Actions > Variables).
 #
-#   * SCRIPT_BEFORE lists /var/www/html and the candidate directories on
-#     every run, so the job log says plainly which one exists and which one
-#     nginx is serving. Check it after the first run and set DEPLOY_TARGET.
-#
-#   * ARGS is the action's default and contains no --delete, so deploying to
-#     the wrong path is useless rather than destructive. Once DEPLOY_TARGET
-#     is confirmed, adding --delete makes files deleted from the repo also
-#     disappear from the server.
+# ARGS is the action's default and carries no --delete. Add --delete once the
+# first deploy to the new root is confirmed, so files removed from the repo
+# also disappear from the server.
 
 name: Deploy URInvited
 
@@ -36,6 +31,9 @@ on:
 concurrency:
   group: deploy-urinvited
   cancel-in-progress: false
+
+env:
+  DEPLOY_TARGET: ${{ vars.DEPLOY_TARGET || '/var/www/urinvited' }}
 
 jobs:
   deploy:
@@ -52,8 +50,7 @@ jobs:
             echo "Add it under Settings > Secrets and variables > Actions > Secrets."
             exit 1
           fi
-          echo "Deploy key present."
-          echo "Target: ${{ vars.DEPLOY_TARGET || '/var/www/html/urinvited' }}"
+          echo "Deploy key present. Target: $DEPLOY_TARGET"
 
       - name: Deploy via rsync over SSH
         uses: easingthemes/ssh-deploy@v5.1.0
@@ -61,7 +58,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.DO_SSH_PRIVATE_KEY }}
           REMOTE_HOST: 64.227.108.128
           REMOTE_USER: root
-          TARGET: ${{ vars.DEPLOY_TARGET || '/var/www/html/urinvited' }}
+          TARGET: ${{ env.DEPLOY_TARGET }}
           ARGS: -rlgoDzvc -i
           EXCLUDE: >-
             .git/,
@@ -71,28 +68,25 @@ jobs:
             .claude/,
             .aios_relay/,
             deploy.sh,
+            deploy/,
             *.md
           SCRIPT_BEFORE: |
-            echo "--- which directory is actually served? ---"
-            ls -la /var/www/html/ || true
+            mkdir -p ${{ env.DEPLOY_TARGET }}
+          SCRIPT_AFTER: |
+            chown -R www-data:www-data ${{ env.DEPLOY_TARGET }} || true
+            echo "--- is the retired path still serving the app? ---"
             for d in /var/www/html/urinvited /var/www/html/URInvited; do
-              if [ -d "$d" ]; then
-                echo "EXISTS: $d ($(ls -1 "$d" | wc -l) entries)"
-              else
-                echo "absent: $d"
-              fi
+              [ -d "$d" ] && echo "STILL PRESENT: $d — remove it once the subdomain is confirmed working"
             done
-            echo "--- nginx roots/aliases mentioning urinvited ---"
-            grep -rin "urinvited" /etc/nginx/ 2>/dev/null || echo "(no nginx match)"
+            grep -rl "URInvited" /etc/nginx/sites-enabled/ 2>/dev/null \
+              | grep -v urinvited.peoplestar.com \
+              || echo "(no other vhost references URInvited)"
 
       - name: Summary
         run: |
           {
-            echo "Deployed \`${GITHUB_SHA:0:7}\` to \`${{ vars.DEPLOY_TARGET || '/var/www/html/urinvited' }}\`"
+            echo "Deployed \`${GITHUB_SHA:0:7}\` to \`$DEPLOY_TARGET\`"
             echo ""
-            echo "Live at https://webapps.peoplestar.com/URInvited/"
-            echo ""
-            echo "If this is the first run, open the deploy step's log and read the"
-            echo "\"which directory is actually served\" section, then set the"
-            echo "DEPLOY_TARGET repository variable if the path above is wrong."
+            echo "Workspace: https://urinvited.peoplestar.com/ (password protected)"
+            echo "An event:  https://urinvited.peoplestar.com/PhilMcAllister/ (public)"
           } >> "$GITHUB_STEP_SUMMARY"

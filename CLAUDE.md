@@ -7,9 +7,9 @@ current structure and the traps that are easy to fall back into.
 
 Static one-page invitation sites, one folder per event. No build step, no
 framework, no server-side code, no database. Plain HTML/CSS/JS served by
-nginx on a Digital Ocean box, at both a subdomain root
-(`urinvited.peoplestar.com`) and a subdirectory
-(`webapps.peoplestar.com/URInvited/`) out of one document root.
+nginx on a Digital Ocean box at `urinvited.peoplestar.com`, from
+`/var/www/urinvited`. That is the only address for this site;
+`webapps.peoplestar.com/URInvited/` is retired.
 
 It used to be a single hand-written `index.html` for Phil McAllister's 90th
 with every name, date, address and colour baked into the markup. It was
@@ -61,12 +61,11 @@ the confetti, the video modal, lazy maps, the mailto form and smooth scroll.
    colours belong in `events/<slug>/event.js`. If you find yourself typing
    "Phil" into `assets/event.js`, stop — add a config field instead.
 
-2. **No absolute paths starting with `/`.** The same files are served from a
-   subdirectory (`https://webapps.peoplestar.com/URInvited/`) as well as a
-   domain root, so `/public/…` resolves to the domain root and 404s under the
-   subdirectory URL. The pre-restructure page had exactly this bug in its
-   favicon links. Everything is relative; keep it that way, or the subdirectory
-   URL guests already hold silently breaks.
+2. **No absolute paths starting with `/`.** Everything is relative so the same
+   files work from a domain root and from any subdirectory. The pre-restructure
+   page had exactly this bug in its favicon links (`/public/…`, which 404s under
+   a subdirectory). Keep it relative: it costs nothing and it is what makes
+   `python3 -m http.server` behave like production.
 
 3. **Colours go through CSS variables, including the RGB triplets.**
    Translucent surfaces use `rgba(var(--primary-rgb), 0.15)`. `applyTheme()`
@@ -153,8 +152,8 @@ stub or ignore them, and never "fix" it by removing them from real pages.
 
 ## Deploying
 
-`./deploy.sh` rsyncs to `root@64.227.108.128:/var/www/html/urinvited` and
-chowns to `www-data`. Live at `https://webapps.peoplestar.com/URInvited/`.
+`./deploy.sh` rsyncs to `root@64.227.108.128:/var/www/urinvited` and chowns to
+`www-data`. Live at `https://urinvited.peoplestar.com/`.
 
 **This cannot be run from a Claude Code remote container, and no credential
 fixes it.** Outbound TCP 22 is blocked wholesale — `github.com:22` times out
@@ -179,21 +178,29 @@ Two paths that do work:
    than fuzzily. That is the likely reason CI deploys appeared broken and the
    workflow got dropped in favour of `deploy.sh`.
 
-### The unconfirmed target directory
+### The document root, and why it moved
 
-The old workflow targeted `/var/www/html/URInvited/`; `deploy.sh` targets
-`/var/www/html/urinvited`. On Linux those are different directories and nobody
-has confirmed which nginx serves. Until that is settled the workflow:
+The site deploys to `/var/www/urinvited`, its own directory, served only by the
+`urinvited.peoplestar.com` vhost. It used to live under `/var/www/html`, in one
+of two directories nobody could confirm between (`urinvited` and `URInvited` —
+different paths on Linux).
 
-- reads `TARGET` from the repo variable `DEPLOY_TARGET`, defaulting to the
-  lowercase path, so it is fixable without a code change;
-- keeps `ARGS` at the action's default (`-rlgoDzvc -i`), which has **no**
-  `--delete`, so a wrong path is useless rather than destructive;
-- runs a `SCRIPT_BEFORE` that lists `/var/www/html` and greps the nginx config
-  for `urinvited`, so the job log names the real directory.
+Moving it settled that ambiguity, but the real reason is security. The
+`webapps.peoplestar.com` vhost also served `/var/www/html/urinvited`, at
+`/URInvited/`, and **that vhost has no `auth_basic` of its own**. `auth_basic`
+is per-server-block, so the workspace protection configured on the subdomain
+does not apply there: anything the webapps vhost can reach is public. Keeping
+the roots separate makes exposure impossible even if that vhost is never
+touched.
 
-Read that log after a run, set `DEPLOY_TARGET`, and only then consider adding
-`--delete` so repo deletions propagate.
+Two clean-up steps remain on the server, and `setup-ssl.sh` warns about both
+until they are done: delete `/var/www/html/urinvited` and
+`/var/www/html/URInvited`, and paste
+`deploy/nginx/webapps-urinvited-redirect.conf` into the webapps server block so
+stale links redirect.
+
+`TARGET` is still overridable via the `DEPLOY_TARGET` repo variable, and `ARGS`
+still carries no `--delete`; add it once a deploy to the new root is confirmed.
 
 ## nginx / TLS (urinvited.peoplestar.com)
 
@@ -257,16 +264,12 @@ against the site root instead of the event folder, and the page breaks.
   restructure; rewriting it as a past-tense recap is a pending decision for
   the owner, and is now a `event.js` edit rather than HTML surgery.
 
-- **The old subdirectory URL now lands on a password prompt.**
-  `webapps.peoplestar.com/URInvited/` used to serve Phil's invitation
-  directly. That vhost is untouched and still serves the files, but the file
-  at the root is now the workspace. Any guest still using that old link will
-  be asked for a password instead of seeing the invitation.
-
-  The fix is to hand out `https://urinvited.peoplestar.com/PhilMcAllister/`.
-  If old links are genuinely still circulating, add a redirect from
-  `/URInvited/` to the event on that vhost — do not reintroduce a public page
-  at the workspace root.
+- **The old URL is retired but may not be cleaned up yet.** Until the old
+  directories under `/var/www/html` are deleted, `webapps.peoplestar.com`
+  keeps serving a stale copy — and, because that vhost has no auth, serves the
+  workspace publicly. Deploys no longer write there, so it only goes stale, but
+  it must still be removed. Hand out
+  `https://urinvited.peoplestar.com/PhilMcAllister/` for invitations.
 
 - **Slugs are case-sensitive.** `/PhilMcAllister/` works; `/philmcallister/`
   is a 404. If mistyped URLs become a nuisance, a case-insensitive redirect

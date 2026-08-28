@@ -3,7 +3,7 @@
 # Usage: ./deploy.sh
 
 SERVER="root@64.227.108.128"
-REMOTE_DIR="/var/www/html/urinvited"
+REMOTE_DIR="/var/www/urinvited"
 
 echo ""
 echo "═══════════════════════════════════════════════════"
@@ -25,5 +25,4 @@ echo ""
 echo "═══════════════════════════════════════════════════"
 echo "  Deploy complete!"
 echo "  Live at: https://urinvited.peoplestar.com/"
-echo "           https://webapps.peoplestar.com/URInvited/"
 echo "═══════════════════════════════════════════════════"

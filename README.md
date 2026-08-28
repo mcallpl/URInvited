@@ -30,6 +30,9 @@ deploy.sh                   rsync to the Digital Ocean box
 | You | `https://urinvited.peoplestar.com/` | yes |
 | Guests | `https://urinvited.peoplestar.com/PhilMcAllister/` | **no** |
 
+`urinvited.peoplestar.com` is the only address for this site.
+`webapps.peoplestar.com/URInvited/` is retired — see *Retiring the old URL*.
+
 Guests must never hit a password prompt, so only the workspace, the builder and
 the event roster are protected. Event pages and the shared assets they need are
 public — anyone with the link can open an invitation.
@@ -114,11 +117,33 @@ without needing nginx rewrites.
 
 ## Deploying
 
-`./deploy.sh` rsyncs to the Digital Ocean host. Pushes to `main` also deploy via
-`.github/workflows/deploy.yml`.
+`./deploy.sh` rsyncs to `/var/www/urinvited` on the Digital Ocean host. Pushes
+to `main` also deploy via `.github/workflows/deploy.yml`.
 
-All paths are relative, so the same files serve correctly from a domain root and
-from a subdirectory. Never introduce absolute paths starting with `/`.
+The site has its own document root rather than living under `/var/www/html`,
+which the webapps vhost also serves. That matters for more than tidiness: the
+webapps vhost has no password of its own, so anything it can reach is public —
+including the workspace. Separate roots keep that impossible even if that vhost
+is never touched.
+
+All paths are relative, so the files serve correctly from a domain root and from
+a subdirectory. Never introduce absolute paths starting with `/`.
+
+## Retiring the old URL
+
+The site used to be served at `webapps.peoplestar.com/URInvited/`. Deploying to
+the new root already stops that path being updated. To finish the job, on the
+server:
+
+1. Delete the old directories: `/var/www/html/urinvited` and
+   `/var/www/html/URInvited`. **Do this** — while they exist, that vhost serves
+   the workspace with no password.
+2. Paste `deploy/nginx/webapps-urinvited-redirect.conf` into the
+   `webapps.peoplestar.com` server block so stale links redirect, then
+   `nginx -t` and reload.
+
+`setup-ssl.sh` checks both of these at the end of a run and warns if either is
+outstanding.
 
 ## Server setup
 

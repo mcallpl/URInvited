@@ -14,7 +14,7 @@
 #     URINVITED_USER      workspace username           (default: mcallpl)
 #     URINVITED_PASSWORD  skip the prompt (careful: this lands in shell history)
 #     CERTBOT_EMAIL       address for expiry warnings
-#     DOCROOT             document root, if auto-detection picks wrong
+#     DOCROOT             document root (default: /var/www/urinvited)
 #     RESET_PASSWORD=1    overwrite an existing password file
 #
 # Idempotent: safe to re-run. It re-uses an existing certificate and password
@@ -42,27 +42,32 @@ die()  { printf '\033[31m    error: %s\033[0m\n' "$*" >&2; exit 1; }
 
 # ---------------------------------------------------------------- doc root
 
-say "Finding the document root"
-if [ -n "${DOCROOT:-}" ]; then
-    [ -d "$DOCROOT" ] || die "DOCROOT=$DOCROOT does not exist"
-    echo "    using DOCROOT from the environment"
-else
-    # deploy.sh uses the lowercase path; the old GitHub workflow used the
-    # capitalised one. Whichever actually holds the site wins.
-    CANDIDATES=(/var/www/html/urinvited /var/www/html/URInvited)
-    DOCROOT=""
-    for d in "${CANDIDATES[@]}"; do
-        if [ -f "$d/index.html" ]; then
-            DOCROOT="$d"; echo "    found the site at: $d"; break
-        elif [ -d "$d" ]; then
-            echo "    exists but has no index.html: $d"
-        fi
+say "Document root"
+DOCROOT="${DOCROOT:-/var/www/urinvited}"
+
+# The site used to live under /var/www/html, where the webapps vhost also
+# served it at /URInvited/. That vhost has no auth of its own, so serving the
+# private workspace from there would expose it. The subdomain gets its own
+# root instead, and the old copies are retired below.
+RETIRED=(/var/www/html/urinvited /var/www/html/URInvited)
+
+if [ ! -f "$DOCROOT/index.html" ]; then
+    SOURCE=""
+    for d in "${RETIRED[@]}"; do
+        if [ -f "$d/index.html" ]; then SOURCE="$d"; break; fi
     done
-    [ -n "$DOCROOT" ] || die "no site found in ${CANDIDATES[*]} — deploy first, or set DOCROOT="
+    if [ -n "$SOURCE" ]; then
+        echo "    migrating $SOURCE -> $DOCROOT"
+        mkdir -p "$DOCROOT"
+        cp -a "$SOURCE/." "$DOCROOT/"
+    else
+        die "no site at $DOCROOT and nothing to migrate — deploy first (./deploy.sh)"
+    fi
 fi
+chown -R www-data:www-data "$DOCROOT" 2>/dev/null || true
 echo "    document root: $DOCROOT"
 if [ ! -d "$DOCROOT/PhilMcAllister" ]; then
-    warn "no event folders found at the top level of $DOCROOT."
+    warn "no event folders at the top level of $DOCROOT."
     warn "deploy the current site, or the workspace will list events that 404."
 fi
 
@@ -138,7 +143,9 @@ install_vhost() {
         echo "    installed and reloaded: $desc"
     else
         rm -f "$SITES_ENABLED/$DOMAIN"
-        nginx -t >/dev/null 2>&1 && systemctl reload nginx || true
+        if nginx -t >/dev/null 2>&1; then
+            systemctl reload nginx || true
+        fi
         die "nginx rejected the $desc config; it has been removed and nginx left as it was"
     fi
 }
@@ -215,10 +222,34 @@ FAILED=0
 
 if [ "$FAILED" -eq 0 ]; then
     say "Done"
-    echo "    Workspace : https://$DOMAIN/            (user: $WORKSPACE_USER)"
+    echo "    Workspace : https://$DOMAIN/                  (user: $WORKSPACE_USER)"
     echo "    An event  : https://$DOMAIN/PhilMcAllister/   (public)"
-    echo "    Still live: https://webapps.peoplestar.com/URInvited/"
     echo "    Config backup: $BACKUP"
+
+    say "Retiring the old location"
+    LEFTOVER=0
+    for d in "${RETIRED[@]}"; do
+        if [ -d "$d" ]; then
+            warn "$d still exists."
+            LEFTOVER=1
+        fi
+    done
+    while IFS= read -r vhost; do
+        [ -n "$vhost" ] || continue
+        warn "another vhost still references URInvited: $vhost"
+        LEFTOVER=1
+    done < <(grep -rl "URInvited" /etc/nginx/sites-enabled/ 2>/dev/null \
+             | grep -v "$DOMAIN" || true)
+    if [ "$LEFTOVER" -eq 1 ]; then
+        echo ""
+        warn "IMPORTANT: those vhosts have no password of their own, so they"
+        warn "would serve the private workspace to anyone. Once you have"
+        warn "confirmed https://$DOMAIN/ works, remove the old directories and"
+        warn "add the redirect in deploy/nginx/webapps-urinvited-redirect.conf"
+        warn "to whichever vhost still serves /URInvited/."
+    else
+        echo "    nothing left serving the old path"
+    fi
 else
     die "one or more checks failed — see the warnings above; backup at $BACKUP"
 fi
