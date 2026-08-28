@@ -14,12 +14,36 @@
 # therefore expose the private workspace. Keeping the roots separate means
 # that even an unpatched webapps vhost cannot serve it.
 #
-# TARGET is still overridable via the DEPLOY_TARGET repository variable
-# (Settings > Secrets and variables > Actions > Variables).
+# DO_SSH_PRIVATE_KEY is a DEDICATED key, not a general root login. On the
+# server its authorized_keys entry is:
 #
-# ARGS is the action's default and carries no --delete. Add --delete once the
-# first deploy to the new root is confirmed, so files removed from the repo
-# also disappear from the server.
+#   command="/usr/bin/rrsync -wo /var/www/urinvited",restrict ssh-ed25519 ...
+#
+# so the key can only rsync INTO /var/www/urinvited (-wo = write-only) and
+# cannot open a shell, forward ports, or reach anything else on the box --
+# which matters, because that host also runs TextGopher, mlspoppy, ReportPoppy,
+# RecordIt and runpayway. Verified: `ssh -i key ... whoami` is refused with
+# "SSH_ORIGINAL_COMMAND does not run rsync".
+#
+# Three consequences for this file, all deliberate:
+#
+#   TARGET is "/" -- paths are relative to the rrsync lock directory, so the
+#   absolute /var/www/urinvited would be wrong here. DEPLOY_TARGET below is
+#   now only used for the log line and the summary.
+#
+#   No SCRIPT_BEFORE / SCRIPT_AFTER. The restricted key refuses arbitrary
+#   commands by design, so the old mkdir and chown hooks cannot run. The
+#   directory already exists, and files land root:root 0644, which nginx
+#   (running as www-data) can read -- chown was never actually required.
+#
+#   ARGS drops -g and -o. Preserving owner/group would stamp the GitHub
+#   runner's uid onto the server's files. It still carries no --delete; add
+#   that once a deploy to the new root is confirmed.
+#
+# Testing this from macOS will fail misleadingly: Apple ships openrsync
+# (protocol 29), which does not send the "." argument rrsync requires, so
+# rrsync rejects it before any option check. GitHub's ubuntu-latest runners
+# have real rsync 3.x. Test it with a workflow run, not from a Mac.
 
 name: Deploy URInvited
 
@@ -58,8 +82,8 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.DO_SSH_PRIVATE_KEY }}
           REMOTE_HOST: 64.227.108.128
           REMOTE_USER: root
-          TARGET: ${{ env.DEPLOY_TARGET }}
-          ARGS: -rlgoDzvc -i
+          TARGET: /
+          ARGS: -rlptDzvc -i
           EXCLUDE: >-
             .git/,
             .github/,
@@ -70,17 +94,6 @@ jobs:
             deploy.sh,
             deploy/,
             *.md
-          SCRIPT_BEFORE: |
-            mkdir -p ${{ env.DEPLOY_TARGET }}
-          SCRIPT_AFTER: |
-            chown -R www-data:www-data ${{ env.DEPLOY_TARGET }} || true
-            echo "--- is the retired path still serving the app? ---"
-            for d in /var/www/html/urinvited /var/www/html/URInvited; do
-              [ -d "$d" ] && echo "STILL PRESENT: $d — remove it once the subdomain is confirmed working"
-            done
-            grep -rl "URInvited" /etc/nginx/sites-enabled/ 2>/dev/null \
-              | grep -v urinvited.peoplestar.com \
-              || echo "(no other vhost references URInvited)"
 
       - name: Summary
         run: |
