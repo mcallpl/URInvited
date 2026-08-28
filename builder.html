@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UR Invited — Event Builder</title>
+<meta name="description" content="Create a new UR Invited event page in a few minutes.">
+<link rel="icon" href="public/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="public/favicon.svg">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+        --ink: #14171f;
+        --ink-soft: #5b6472;
+        --line: #dfe3ea;
+        --panel: #ffffff;
+        --page: #f4f6fa;
+        --brand: #7A1E3E;
+        --brand-soft: #fbeef3;
+        --ok: #1f7a4d;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background: var(--page);
+        color: var(--ink);
+        line-height: 1.5;
+        font-size: 15px;
+    }
+
+    .topbar {
+        background: var(--ink);
+        color: #fff;
+        padding: 0.9rem 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        position: sticky;
+        top: 0;
+        z-index: 20;
+    }
+
+    .topbar h1 { font-size: 1.1rem; letter-spacing: 0.02em; }
+    .topbar h1 span { opacity: 0.6; font-weight: 400; }
+    .topbar a { color: #fff; opacity: 0.75; font-size: 0.85rem; }
+    .topbar-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; }
+
+    .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 1.5rem;
+        padding: 1.5rem;
+        max-width: 1700px;
+        margin: 0 auto;
+        align-items: start;
+    }
+
+    .form-column { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+
+    details.card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    details.card > summary {
+        cursor: pointer;
+        padding: 0.9rem 1.1rem;
+        font-weight: 600;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+    }
+
+    details.card > summary::-webkit-details-marker { display: none; }
+    details.card > summary::after { content: '▾'; color: var(--ink-soft); transition: transform 0.2s; }
+    details.card[open] > summary::after { transform: rotate(180deg); }
+    details.card > summary:hover { background: var(--brand-soft); }
+    .summary-hint { font-weight: 400; font-size: 0.8rem; color: var(--ink-soft); margin-left: auto; }
+
+    .card-body { padding: 0 1.1rem 1.2rem; border-top: 1px solid var(--line); padding-top: 1.1rem; }
+
+    .field { margin-bottom: 0.9rem; }
+    .field:last-child { margin-bottom: 0; }
+
+    .field label {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--ink-soft);
+        margin-bottom: 0.3rem;
+    }
+
+    .field .hint { font-size: 0.78rem; color: var(--ink-soft); margin-top: 0.25rem; font-weight: 400; text-transform: none; letter-spacing: 0; }
+
+    input[type="text"], input[type="email"], input[type="url"], textarea, select {
+        width: 100%;
+        padding: 0.55rem 0.7rem;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        font: inherit;
+        font-size: 0.92rem;
+        background: #fff;
+        color: var(--ink);
+    }
+
+    input:focus, textarea:focus, select:focus {
+        outline: none;
+        border-color: var(--brand);
+        box-shadow: 0 0 0 3px rgba(122, 30, 62, 0.12);
+    }
+
+    textarea { resize: vertical; min-height: 68px; }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; }
+
+    .toggle { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; font-weight: 500; }
+    .toggle input { width: 16px; height: 16px; accent-color: var(--brand); }
+
+    button {
+        font: inherit;
+        font-size: 0.88rem;
+        font-weight: 600;
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--ink);
+        border-radius: 6px;
+        padding: 0.5rem 0.9rem;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    button:hover { border-color: var(--brand); color: var(--brand); }
+    button.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+    button.primary:hover { background: #5f1730; color: #fff; }
+    button.ghost { background: transparent; border-color: transparent; color: var(--ink-soft); padding: 0.3rem 0.5rem; }
+    button.ghost:hover { color: #b3261e; border-color: transparent; }
+
+    .repeat-item {
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--brand);
+        border-radius: 6px;
+        padding: 0.9rem;
+        margin-bottom: 0.75rem;
+        background: #fcfdff;
+    }
+
+    .repeat-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.7rem;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--ink-soft);
+    }
+
+    .swatches { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+    .swatch label { font-size: 0.72rem; }
+    .swatch input[type="color"] {
+        width: 100%;
+        height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 2px;
+        background: #fff;
+        cursor: pointer;
+    }
+
+    .presets { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
+    .preset {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.35rem 0.7rem;
+        font-size: 0.82rem;
+    }
+    .preset i { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
+
+    .preview-column { position: sticky; top: 4.2rem; min-width: 0; }
+
+    .preview-frame {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 6rem);
+    }
+
+    .preview-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--line);
+        font-size: 0.8rem;
+        color: var(--ink-soft);
+        font-weight: 600;
+    }
+
+    .preview-bar .widths { display: flex; gap: 0.35rem; }
+    .preview-bar button { padding: 0.25rem 0.6rem; font-size: 0.78rem; }
+    .preview-bar button[aria-pressed="true"] { background: var(--brand); color: #fff; border-color: var(--brand); }
+
+    .preview-stage { flex: 1; overflow: auto; background: #22252c; display: flex; justify-content: center; }
+    #preview { border: 0; background: #1a1a1a; width: 100%; height: 100%; transition: width 0.2s; }
+
+    .export-list { list-style: none; font-size: 0.88rem; }
+    .export-list li { padding: 0.45rem 0; border-bottom: 1px dashed var(--line); display: flex; gap: 0.5rem; }
+    .export-list li:last-child { border-bottom: 0; }
+    .export-list b { color: var(--brand); }
+
+    code {
+        background: #eef1f6;
+        padding: 0.12rem 0.35rem;
+        border-radius: 4px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.85em;
+    }
+
+    .status {
+        font-size: 0.82rem;
+        color: var(--ok);
+        font-weight: 600;
+        min-height: 1.2em;
+    }
+
+    .thumb {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        margin-top: 0.5rem;
+        font-size: 0.8rem;
+        color: var(--ink-soft);
+    }
+    .thumb img { width: 64px; height: 48px; object-fit: cover; border-radius: 4px; border: 1px solid var(--line); }
+
+    .gallery-thumbs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.6rem; }
+    .gallery-thumbs figure { position: relative; }
+    .gallery-thumbs img { width: 70px; height: 52px; object-fit: cover; border-radius: 4px; border: 1px solid var(--line); display: block; }
+    .gallery-thumbs button {
+        position: absolute; top: -6px; right: -6px;
+        width: 20px; height: 20px; padding: 0; line-height: 1;
+        border-radius: 50%; background: #fff; font-size: 0.7rem;
+    }
+
+    @media (max-width: 1100px) {
+        .layout { grid-template-columns: 1fr; }
+        .preview-column { position: static; }
+        .preview-frame { height: 70vh; }
+    }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+    <h1>UR Invited <span>· Event Builder</span></h1>
+    <div class="topbar-actions">
+        <span class="status" id="status"></span>
+        <button type="button" id="load-phil">Load an example</button>
+        <button type="button" id="import">Import event.js</button>
+        <button type="button" id="reset">Start over</button>
+        <button type="button" class="primary" id="download-all">⬇ Download event files</button>
+    </div>
+</div>
+
+<div class="layout">
+    <div class="form-column">
+
+        <details class="card" open>
+            <summary>1 · The basics <span class="summary-hint">name, folder, sharing</span></summary>
+            <div class="card-body">
+                <div class="field">
+                    <label for="f-title">Event name</label>
+                    <input type="text" id="f-title" data-path="title" placeholder="Anna's Retirement Party">
+                    <p class="hint">Shown in the browser tab and when the link is shared.</p>
+                </div>
+                <div class="row">
+                    <div class="field">
+                        <label for="f-logo">Header logo text</label>
+                        <input type="text" id="f-logo" data-path="logo" placeholder="Anna's Retirement">
+                    </div>
+                    <div class="field">
+                        <label for="f-slug">Folder name</label>
+                        <input type="text" id="f-slug" data-path="slug" placeholder="annas-retirement">
+                        <p class="hint">Lives at <code>events/<span id="slug-echo">your-slug</span>/</code></p>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="f-desc">Share description</label>
+                    <textarea id="f-desc" data-path="meta.description" placeholder="One line that appears in text messages and social previews."></textarea>
+                </div>
+                <div class="field">
+                    <label class="toggle"><input type="checkbox" data-path="confetti" data-type="bool"> Falling confetti animation</label>
+                </div>
+            </div>
+        </details>
+
+        <details class="card" open>
+            <summary>2 · Opening screen <span class="summary-hint">the first thing guests see</span></summary>
+            <div class="card-body">
+                <div class="field">
+                    <label for="f-badge">Badge (optional)</label>
+                    <input type="text" id="f-badge" data-path="hero.badge" placeholder="🎉 SHHHHH... IT'S A SURPRISE! 🎉">
+                    <p class="hint">Leave empty to hide it.</p>
+                </div>
+                <div class="field">
+                    <label for="f-hero-title">Headline</label>
+                    <input type="text" id="f-hero-title" data-path="hero.title" placeholder="Anna's Retirement Party">
+                </div>
+                <div class="field">
+                    <label for="f-hero-sub">Subtitle</label>
+                    <input type="text" id="f-hero-sub" data-path="hero.subtitle" placeholder="Forty Years, One Great Send-Off">
+                </div>
+                <div class="field">
+                    <label for="f-hero-tag">Opening paragraph</label>
+                    <textarea id="f-hero-tag" data-path="hero.tagline"></textarea>
+                </div>
+            </div>
+        </details>
+
+        <details class="card">
+            <summary>3 · Colours <span class="summary-hint">the whole page re-themes</span></summary>
+            <div class="card-body">
+                <div class="presets" id="presets"></div>
+                <div class="swatches">
+                    <div class="swatch field"><label for="c-primary">Primary</label><input type="color" id="c-primary" data-path="theme.primary"></div>
+                    <div class="swatch field"><label for="c-light">Primary light</label><input type="color" id="c-light" data-path="theme.primaryLight"></div>
+                    <div class="swatch field"><label for="c-accent">Accent</label><input type="color" id="c-accent" data-path="theme.accent"></div>
+                    <div class="swatch field"><label for="c-dark">Background</label><input type="color" id="c-dark" data-path="theme.dark"></div>
+                    <div class="swatch field"><label for="c-dark2">Background 2</label><input type="color" id="c-dark2" data-path="theme.dark2"></div>
+                    <div class="swatch field"><label for="c-cream">Text</label><input type="color" id="c-cream" data-path="theme.cream"></div>
+                </div>
+            </div>
+        </details>
+
+        <details class="card" open>
+            <summary>4 · Photos <span class="summary-hint">hero photo and gallery</span></summary>
+            <div class="card-body">
+                <div class="field">
+                    <label class="toggle"><input type="checkbox" data-path="photo.enabled" data-type="bool"> Show the photo section</label>
+                </div>
+                <div class="field">
+                    <label for="f-photo-title">Section heading</label>
+                    <input type="text" id="f-photo-title" data-path="photo.title" placeholder="Photos">
+                </div>
+                <div class="field">
+                    <label for="f-photo-file">Main photo</label>
+                    <input type="file" id="f-photo-file" accept="image/*">
+                    <p class="hint">Pictures are resized and embedded in the event file, so there is nothing else to upload.</p>
+                    <div class="thumb" id="photo-thumb" hidden><img alt="" id="photo-thumb-img"><span id="photo-thumb-meta"></span><button type="button" class="ghost" id="photo-clear">Remove</button></div>
+                </div>
+                <div class="field">
+                    <label for="f-photo-path">…or use a file already on the site</label>
+                    <input type="text" id="f-photo-path" placeholder="images/anna.jpg">
+                </div>
+                <div class="field">
+                    <label for="f-photo-caption">Caption (optional)</label>
+                    <input type="text" id="f-photo-caption" data-path="photo.caption">
+                </div>
+                <div class="field">
+                    <label for="f-gallery-files">Gallery photos (optional)</label>
+                    <input type="file" id="f-gallery-files" accept="image/*" multiple>
+                    <div class="gallery-thumbs" id="gallery-thumbs"></div>
+                </div>
+            </div>
+        </details>
+
+        <details class="card" open>
+            <summary>5 · Schedule <span class="summary-hint" id="hint-schedule"></span></summary>
+            <div class="card-body">
+                <div class="field">
+                    <label class="toggle"><input type="checkbox" data-path="schedule.enabled" data-type="bool"> Show the schedule</label>
+                </div>
+                <div class="field">
+                    <label for="f-sched-title">Section heading</label>
+                    <input type="text" id="f-sched-title" data-path="schedule.title" placeholder="Celebration Weekend">
+                </div>
+                <div id="schedule-list"></div>
+                <button type="button" id="add-schedule">+ Add another day</button>
+            </div>
+        </details>
+
+        <details class="card" open>
+            <summary>6 · Venues &amp; maps <span class="summary-hint" id="hint-venues"></span></summary>
+            <div class="card-body">
+                <div class="field">
+                    <label class="toggle"><input type="checkbox" data-path="venues.enabled" data-type="bool"> Show venue details</label>
+                    <p class="hint">Maps and directions are generated from the address — no API key needed.</p>
+                </div>
+                <div id="venue-list"></div>
+                <button type="button" id="add-venue">+ Add another venue</button>
+            </div>
+        </details>
+
+        <details class="card">
+            <summary>7 · Video messages <span class="summary-hint">ask guests to record</span></summary>
+            <div class="card-body">
+                <div class="field">
+                    <label class="toggle"><input type="checkbox" data-path="videoTribute.enabled" data-type="bool"> Invite guests to record a video</label>
+                </div>
+                <div class="field">
+                    <label for="f-vt-badge">Deadline badge</label>
+                    <input type="text" id="f-vt-badge" data-path="videoTribute.badge" placeholder="🙏 PLEASE SUBMIT BY FRI, MAY 1">
+                </div>
+                <div class="row">
+                    <div class="field">
+                        <label for="f-vt-heading">Heading</label>
+                        <input type="text" id="f-vt-heading" data-path="videoTribute.heading">
+                    </div>
+                    <div class="field">
+                        <label for="f-vt-sub">Subheading</label>
+                        <input type="text" id="f-vt-sub" data-path="videoTribute.subheading">
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="f-vt-intro">Intro paragraph</label>
+                    <textarea id="f-vt-intro" data-path="videoTribute.intro"></textarea>
+                </div>
+                <div class="field">
+                    <label for="f-vt-url">Recorder link</label>
+                    <input type="url" id="f-vt-url" data-path="videoTribute.embedUrl" placeholder="https://app.memento.com/.../record">
+                    <p class="hint">Opens in a pop-up on the page. Leave empty to hide the button.</p>
+                </div>
+                <div class="row">
+                    <div class="field">
+                        <label for="f-vt-button">Button label</label>
+                        <input type="text" id="f-vt-button" data-path="videoTribute.buttonLabel">
+                    </div>
+                    <div class="field">
+                        <label for="f-vt-note">Button note</label>
+                        <input type="text" id="f-vt-note" data-path="videoTribute.buttonNote">
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="f-vt-tips">Tips (one per line)</label>
+                    <textarea id="f-vt-tips" data-path="videoTribute.tips" data-type="lines"></textarea>
+                </div>
+            </div>
+        </details>
+
+        <details class="card">
+            <summary>8 · Featured video <span class="summary-hint">a video you host</span></summary>
+            <div class="card-body">
+                <div class="field">
+                    <label class="toggle"><input type="checkbox" data-path="featuredVideo.enabled" data-type="bool"> Show a video near the top</label>
+                </div>
+                <div class="field">
+                    <label for="f-fv-src">Video file path</label>
+                    <input type="text" id="f-fv-src" data-path="featuredVideo.src" placeholder="chip-video.mp4">
+                    <p class="hint">Put the file in the site root and name it here.</p>
+                </div>
+                <div class="field">
+                    <label for="f-fv-notice">Banner under the video</label>
+                    <input type="text" id="f-fv-notice" data-path="featuredVideo.notice">
+                </div>
+            </div>
+        </details>
+
+        <details class="card" open>
+            <summary>9 · Contact <span class="summary-hint">how guests reach you</span></summary>
+            <div class="card-body">
+                <div class="field">
+                    <label class="toggle"><input type="checkbox" data-path="contact.enabled" data-type="bool"> Show the contact section</label>
+                </div>
+                <div class="row">
+                    <div class="field">
+                        <label for="f-contact-heading">Heading</label>
+                        <input type="text" id="f-contact-heading" data-path="contact.heading">
+                    </div>
+                    <div class="field">
+                        <label for="f-contact-email">Reply-to email</label>
+                        <input type="email" id="f-contact-email" data-path="contact.form.email" placeholder="you@example.com">
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="f-contact-intro">Intro line</label>
+                    <input type="text" id="f-contact-intro" data-path="contact.intro">
+                </div>
+                <div id="phone-list"></div>
+                <button type="button" id="add-phone">+ Add a phone number</button>
+            </div>
+        </details>
+
+        <details class="card">
+            <summary>10 · Footer</summary>
+            <div class="card-body">
+                <div class="row-3">
+                    <div class="field">
+                        <label for="f-foot-title">Title</label>
+                        <input type="text" id="f-foot-title" data-path="footer.title">
+                    </div>
+                    <div class="field">
+                        <label for="f-foot-sub">Date line</label>
+                        <input type="text" id="f-foot-sub" data-path="footer.subtitle">
+                    </div>
+                    <div class="field">
+                        <label for="f-foot-tag">Closing line</label>
+                        <input type="text" id="f-foot-tag" data-path="footer.tagline">
+                    </div>
+                </div>
+            </div>
+        </details>
+
+        <details class="card" open>
+            <summary>Publish <span class="summary-hint">three steps</span></summary>
+            <div class="card-body">
+                <ul class="export-list">
+                    <li><b>1.</b> Press <b>Download event files</b> — you get <code>index.html</code> and <code>event.js</code>.</li>
+                    <li><b>2.</b> Put both in a new folder: <code>events/<span class="slug-echo">your-slug</span>/</code></li>
+                    <li><b>3.</b> Add one line to <code>assets/events-index.js</code> so it shows on the home page, then run <code>./deploy.sh</code>.</li>
+                </ul>
+                <div class="field" style="margin-top:1rem">
+                    <label for="f-index-snippet">Line for assets/events-index.js</label>
+                    <textarea id="f-index-snippet" readonly rows="6"></textarea>
+                    <button type="button" id="copy-snippet" style="margin-top:0.5rem">Copy line</button>
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <div class="preview-column">
+        <div class="preview-frame">
+            <div class="preview-bar">
+                <span>Live preview</span>
+                <div class="widths">
+                    <button type="button" data-width="100%" aria-pressed="true">Desktop</button>
+                    <button type="button" data-width="420px" aria-pressed="false">Phone</button>
+                </div>
+            </div>
+            <div class="preview-stage"><iframe id="preview" title="Live preview of the event page"></iframe></div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    var DRAFT_KEY = 'urinvited.builder.draft.v1';
+    var MAX_IMAGE_EDGE = 1600;
+
+    var PRESETS = [
+        { name: 'Classic gold', theme: { primary: '#D4AF37', primaryLight: '#E8D5A8', accent: '#B8860B', dark: '#1a1a1a', dark2: '#2a2a2a', cream: '#F5F1E8' } },
+        { name: 'Garden',       theme: { primary: '#8FBF7F', primaryLight: '#D6E8CE', accent: '#4F7A43', dark: '#16211a', dark2: '#22302a', cream: '#F2F6EF' } },
+        { name: 'Rose',         theme: { primary: '#E8879C', primaryLight: '#F7CFD8', accent: '#B04A63', dark: '#221419', dark2: '#31202a', cream: '#FBF2F4' } },
+        { name: 'Midnight',     theme: { primary: '#7FB3FF', primaryLight: '#CFE1FF', accent: '#3C6FC4', dark: '#101625', dark2: '#1b2437', cream: '#EEF3FB' } },
+        { name: 'Sunset',       theme: { primary: '#F2994A', primaryLight: '#FAD9B6', accent: '#C4611F', dark: '#1e1610', dark2: '#2d2118', cream: '#FBF4EC' } }
+    ];
+
+    function blank() {
+        return {
+            slug: '',
+            title: '',
+            logo: '',
+            theme: Object.assign({}, PRESETS[0].theme),
+            confetti: true,
+            meta: { description: '', ogImage: 'public/og-image.png', themeColor: '#1a1a1a' },
+            hero: { badge: '', title: '', subtitle: '', tagline: '' },
+            featuredVideo: { enabled: false, src: '', notice: '' },
+            photo: { enabled: true, navLabel: 'Photos', title: 'Photos', image: '', alt: '', caption: '', gallery: [] },
+            schedule: { enabled: true, navLabel: 'Events', title: 'The Schedule', items: [newScheduleItem()] },
+            videoTribute: {
+                enabled: false, navLabel: '📹 Videos', badge: '', heading: '🎥 Share Your Video Message!',
+                subheading: '', intro: '', buttonLabel: '▶️ CREATE YOUR VIDEO NOW', buttonNote: '',
+                embedUrl: '', tipsTitle: 'Quick Tips:', tips: []
+            },
+            venues: { enabled: true, navLabel: 'Venue', items: [newVenue(1)] },
+            contact: {
+                enabled: true, navLabel: 'Questions?', heading: 'Have Questions?',
+                intro: "We'd love to hear from you!", phones: [],
+                form: { enabled: true, email: '', subject: '', greeting: 'Hello,' }
+            },
+            footer: { title: '', subtitle: '', tagline: '' }
+        };
+    }
+
+    function newScheduleItem() {
+        return { date: '', time: '', title: '', locationLines: [], venueId: '' };
+    }
+
+    function newVenue(n) {
+        return {
+            id: 'venue-' + (n || (Date.now() % 10000)),
+            heading: '', description: '', name: '', addressLines: [], notes: []
+        };
+    }
+
+    var state = blank();
+
+    /* ---------- path helpers ---------- */
+
+    function get(path) {
+        return path.split('.').reduce(function (node, key) {
+            return (node === undefined || node === null) ? undefined : node[key];
+        }, state);
+    }
+
+    function set(path, value) {
+        var keys = path.split('.');
+        var last = keys.pop();
+        var node = keys.reduce(function (acc, key) {
+            if (typeof acc[key] !== 'object' || acc[key] === null) acc[key] = {};
+            return acc[key];
+        }, state);
+        node[last] = value;
+    }
+
+    function slugify(text) {
+        return String(text || '').toLowerCase().trim()
+            .replace(/['’]/g, '')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '')
+            .slice(0, 60);
+    }
+
+    function splitLines(text) {
+        return String(text || '').split('\n').map(function (line) { return line.trim(); }).filter(Boolean);
+    }
+
+    /* ---------- simple field binding ---------- */
+
+    var boundInputs = [];
+
+    function bindInputs() {
+        boundInputs = Array.prototype.slice.call(document.querySelectorAll('[data-path]'));
+        boundInputs.forEach(function (input) {
+            var path = input.getAttribute('data-path');
+            var type = input.getAttribute('data-type');
+            var eventName = (input.type === 'checkbox' || input.type === 'color') ? 'change' : 'input';
+
+            input.addEventListener(eventName, function () {
+                if (type === 'bool') set(path, input.checked);
+                else if (type === 'lines') set(path, splitLines(input.value));
+                else set(path, input.value);
+                onChange();
+            });
+            if (input.type === 'color') {
+                input.addEventListener('input', function () {
+                    set(path, input.value);
+                    onChange();
+                });
+            }
+        });
+    }
+
+    function syncInputs() {
+        boundInputs.forEach(function (input) {
+            var value = get(input.getAttribute('data-path'));
+            var type = input.getAttribute('data-type');
+            if (type === 'bool') input.checked = !!value;
+            else if (type === 'lines') input.value = (value || []).join('\n');
+            else input.value = value === undefined || value === null ? '' : value;
+        });
+    }
+
+    /* ---------- repeaters ---------- */
+
+    function field(labelText, value, oninput, placeholder, multiline) {
+        var wrap = document.createElement('div');
+        wrap.className = 'field';
+        var label = document.createElement('label');
+        label.textContent = labelText;
+        var input = document.createElement(multiline ? 'textarea' : 'input');
+        if (!multiline) input.type = 'text';
+        input.value = value || '';
+        if (placeholder) input.placeholder = placeholder;
+        input.addEventListener('input', function () { oninput(input.value); onChange(); });
+        wrap.appendChild(label);
+        wrap.appendChild(input);
+        return wrap;
+    }
+
+    function repeatItem(titleText, onRemove) {
+        var box = document.createElement('div');
+        box.className = 'repeat-item';
+        var head = document.createElement('div');
+        head.className = 'repeat-head';
+        var name = document.createElement('span');
+        name.textContent = titleText;
+        var remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'ghost';
+        remove.textContent = '✕ Remove';
+        remove.addEventListener('click', onRemove);
+        head.appendChild(name);
+        head.appendChild(remove);
+        box.appendChild(head);
+        return box;
+    }
+
+    function renderSchedule() {
+        var host = document.getElementById('schedule-list');
+        host.innerHTML = '';
+        state.schedule.items.forEach(function (item, index) {
+            var box = repeatItem('Day ' + (index + 1), function () {
+                state.schedule.items.splice(index, 1);
+                renderSchedule();
+                onChange();
+            });
+
+            var row = document.createElement('div');
+            row.className = 'row';
+            row.appendChild(field('Date', item.date, function (v) { item.date = v; }, 'June 5'));
+            row.appendChild(field('Time', item.time, function (v) { item.time = v; }, '7:00 PM'));
+            box.appendChild(row);
+
+            box.appendChild(field('What is happening', item.title, function (v) { item.title = v; }, 'Family & Friends Gathering'));
+            box.appendChild(field('Location (one line each)', (item.locationLines || []).join('\n'),
+                function (v) { item.locationLines = splitLines(v); }, "Dave and Buster's\n2075 Diamond Blvd\nConcord, CA 94520", true));
+
+            var linkWrap = document.createElement('div');
+            linkWrap.className = 'field';
+            var linkLabel = document.createElement('label');
+            linkLabel.textContent = 'Links down to venue';
+            var select = document.createElement('select');
+            var none = document.createElement('option');
+            none.value = '';
+            none.textContent = '— none —';
+            select.appendChild(none);
+            state.venues.items.forEach(function (venue, venueIndex) {
+                var option = document.createElement('option');
+                option.value = venue.id;
+                option.textContent = venue.heading || venue.name || ('Venue ' + (venueIndex + 1));
+                select.appendChild(option);
+            });
+            select.value = item.venueId || '';
+            select.addEventListener('change', function () { item.venueId = select.value; onChange(); });
+            linkWrap.appendChild(linkLabel);
+            linkWrap.appendChild(select);
+            box.appendChild(linkWrap);
+
+            host.appendChild(box);
+        });
+        document.getElementById('hint-schedule').textContent =
+            state.schedule.items.length + (state.schedule.items.length === 1 ? ' day' : ' days');
+    }
+
+    function renderVenues() {
+        var host = document.getElementById('venue-list');
+        host.innerHTML = '';
+        state.venues.items.forEach(function (venue, index) {
+            var box = repeatItem('Venue ' + (index + 1), function () {
+                state.venues.items.splice(index, 1);
+                renderVenues();
+                renderSchedule();
+                onChange();
+            });
+
+            box.appendChild(field('Heading', venue.heading, function (v) { venue.heading = v; }, 'June 5 — Welcome Gathering'));
+            box.appendChild(field('Description', venue.description, function (v) { venue.description = v; }, '', true));
+            box.appendChild(field('Venue name', venue.name, function (v) { venue.name = v; }, 'Acalanes Lodge'));
+            box.appendChild(field('Address (one line each)', (venue.addressLines || []).join('\n'),
+                function (v) { venue.addressLines = splitLines(v); }, '925 Moraga Rd\nLafayette, CA 94549', true));
+
+            var note = (venue.notes && venue.notes[0]) || { label: '', text: '' };
+            function saveNote() {
+                venue.notes = (note.label || note.text) ? [note] : [];
+            }
+            var noteRow = document.createElement('div');
+            noteRow.className = 'row';
+            noteRow.appendChild(field('Extra note label', note.label, function (v) { note.label = v; saveNote(); }, '🚗 Parking Note'));
+            noteRow.appendChild(field('Extra note text', note.text, function (v) { note.text = v; saveNote(); }, ''));
+            box.appendChild(noteRow);
+
+            host.appendChild(box);
+        });
+        document.getElementById('hint-venues').textContent =
+            state.venues.items.length + (state.venues.items.length === 1 ? ' venue' : ' venues');
+    }
+
+    function renderPhones() {
+        var host = document.getElementById('phone-list');
+        host.innerHTML = '';
+        state.contact.phones.forEach(function (phone, index) {
+            var box = repeatItem('Contact ' + (index + 1), function () {
+                state.contact.phones.splice(index, 1);
+                renderPhones();
+                onChange();
+            });
+            var row = document.createElement('div');
+            row.className = 'row';
+            row.appendChild(field('Label', phone.label, function (v) { phone.label = v; }, 'Contact Chip'));
+            row.appendChild(field('Number', phone.number, function (v) { phone.number = v; }, '(555) 123-4567'));
+            box.appendChild(row);
+            host.appendChild(box);
+        });
+    }
+
+    /* ---------- images ---------- */
+
+    function readImage(file, done) {
+        var reader = new FileReader();
+        reader.onload = function () {
+            var image = new Image();
+            image.onload = function () {
+                var scale = Math.min(1, MAX_IMAGE_EDGE / Math.max(image.width, image.height));
+                var canvas = document.createElement('canvas');
+                canvas.width = Math.round(image.width * scale);
+                canvas.height = Math.round(image.height * scale);
+                canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+                // PNGs with transparency would lose it as JPEG, so keep those as-is.
+                var type = /png$/i.test(file.type) ? 'image/png' : 'image/jpeg';
+                done(canvas.toDataURL(type, 0.82));
+            };
+            image.onerror = function () { done(reader.result); };
+            image.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function humanSize(dataUri) {
+        var bytes = Math.round((dataUri.length - (dataUri.indexOf(',') + 1)) * 0.75);
+        return bytes > 1048576 ? (bytes / 1048576).toFixed(1) + ' MB' : Math.round(bytes / 1024) + ' KB';
+    }
+
+    function renderPhotoThumb() {
+        var wrap = document.getElementById('photo-thumb');
+        var image = state.photo.image;
+        if (image && image.indexOf('data:') === 0) {
+            wrap.hidden = false;
+            document.getElementById('photo-thumb-img').src = image;
+            document.getElementById('photo-thumb-meta').textContent = 'Embedded · ' + humanSize(image);
+        } else {
+            wrap.hidden = true;
+        }
+        document.getElementById('f-photo-path').value =
+            (image && image.indexOf('data:') !== 0) ? image : '';
+    }
+
+    function renderGalleryThumbs() {
+        var host = document.getElementById('gallery-thumbs');
+        host.innerHTML = '';
+        state.photo.gallery.forEach(function (item, index) {
+            var figure = document.createElement('figure');
+            var img = document.createElement('img');
+            img.src = item.src;
+            img.alt = item.alt || '';
+            var remove = document.createElement('button');
+            remove.type = 'button';
+            remove.textContent = '✕';
+            remove.title = 'Remove';
+            remove.addEventListener('click', function () {
+                state.photo.gallery.splice(index, 1);
+                renderGalleryThumbs();
+                onChange();
+            });
+            figure.appendChild(img);
+            figure.appendChild(remove);
+            host.appendChild(figure);
+        });
+    }
+
+    /* ---------- output ---------- */
+
+    function cleanConfig() {
+        var out = JSON.parse(JSON.stringify(state));
+        out.slug = out.slug || slugify(out.title) || 'new-event';
+        out.logo = out.logo || out.title;
+        out.footer.title = out.footer.title || out.title;
+        out.photo.alt = out.photo.alt || out.title;
+        if (!out.contact.form.subject) out.contact.form.subject = 'Question about ' + (out.title || 'your event');
+        if (!out.contact.form.email) out.contact.form.enabled = false;
+        return out;
+    }
+
+    function configFileText() {
+        var config = cleanConfig();
+        return '/* ' + (config.title || 'UR Invited event') + '\n' +
+               '   Generated by builder.html — edit here or reload it in the builder. */\n\n' +
+               'window.URINVITED_EVENT = ' + JSON.stringify(config, null, 4) + ';\n';
+    }
+
+    var SHELL = [
+        '<!DOCTYPE html>',
+        '<html lang="en">',
+        '<head>',
+        '    <meta charset="UTF-8">',
+        '    <meta name="viewport" content="width=device-width, initial-scale=1.0">',
+        '    <title>UR Invited</title>',
+        '    <link rel="preconnect" href="https://fonts.googleapis.com">',
+        '    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
+        '    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">',
+        '    <link rel="stylesheet" href="../../assets/event.css">',
+        '</head>',
+        '<body>',
+        '    <div id="event-root"></div>',
+        '    <noscript>',
+        '        <div style="padding:4rem 2rem;text-align:center">',
+        '            <h1>This invitation needs JavaScript</h1>',
+        '            <p>Please enable JavaScript to see the event details.</p>',
+        '        </div>',
+        '    </noscript>',
+        '    <script>window.URINVITED_BASE = \'../../\';<\/script>',
+        '    <script src="event.js"><\/script>',
+        '    <script src="../../assets/event.js"><\/script>',
+        '</body>',
+        '</html>',
+        ''
+    ].join('\n');
+
+    function download(filename, text, mime) {
+        var blob = new Blob([text], { type: (mime || 'text/plain') + ';charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    }
+
+    function indexSnippet() {
+        var config = cleanConfig();
+        return '    {\n' +
+               '        slug: ' + JSON.stringify(config.slug) + ',\n' +
+               '        title: ' + JSON.stringify(config.title) + ',\n' +
+               '        dates: ' + JSON.stringify(config.footer.subtitle || '') + ',\n' +
+               '        blurb: ' + JSON.stringify(config.meta.description || '') + ',\n' +
+               '        color: ' + JSON.stringify(config.theme.primary) + '\n' +
+               '    },';
+    }
+
+    /* ---------- preview ---------- */
+
+    var previewTimer = null;
+
+    function buildPreview() {
+        var config = cleanConfig();
+        config.confetti = false;  // rebuilding on every keystroke would rain forever
+        // No webfont link here on purpose: this document is rebuilt on every
+        // keystroke, and a slow or blocked font request holds up the scripts
+        // behind it, leaving the preview blank. The published page loads Poppins.
+        return [
+            '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">',
+            '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
+            '<link rel="stylesheet" href="assets/event.css"></head><body>',
+            '<div id="event-root"></div>',
+            '<script>window.URINVITED_BASE="./";window.URINVITED_EVENT=',
+            JSON.stringify(config),
+            ';<\/script><script src="assets/event.js"><\/script></body></html>'
+        ].join('');
+    }
+
+    function refreshPreview() {
+        document.getElementById('preview').srcdoc = buildPreview();
+    }
+
+    /* ---------- change plumbing ---------- */
+
+    var statusTimer = null;
+
+    function flash(message) {
+        var node = document.getElementById('status');
+        node.textContent = message;
+        clearTimeout(statusTimer);
+        statusTimer = setTimeout(function () { node.textContent = ''; }, 2500);
+    }
+
+    function onChange() {
+        var slug = state.slug || slugify(state.title) || 'your-slug';
+        document.getElementById('slug-echo').textContent = slug;
+        Array.prototype.forEach.call(document.querySelectorAll('.slug-echo'), function (node) {
+            node.textContent = slug;
+        });
+        document.getElementById('f-index-snippet').value = indexSnippet();
+
+        try {
+            localStorage.setItem(DRAFT_KEY, JSON.stringify(state));
+        } catch (error) {
+            /* private browsing, or the images pushed the draft over quota */
+        }
+
+        clearTimeout(previewTimer);
+        previewTimer = setTimeout(refreshPreview, 250);
+    }
+
+    function reloadEverything() {
+        syncInputs();
+        renderSchedule();
+        renderVenues();
+        renderPhones();
+        renderPhotoThumb();
+        renderGalleryThumbs();
+        onChange();
+    }
+
+    /* ---------- wiring ---------- */
+
+    function wire() {
+        bindInputs();
+
+        var presetHost = document.getElementById('presets');
+        PRESETS.forEach(function (preset) {
+            var button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'preset';
+            var dot = document.createElement('i');
+            dot.style.background = preset.theme.primary;
+            button.appendChild(dot);
+            button.appendChild(document.createTextNode(preset.name));
+            button.addEventListener('click', function () {
+                state.theme = Object.assign({}, preset.theme);
+                state.meta.themeColor = preset.theme.dark;
+                syncInputs();
+                onChange();
+            });
+            presetHost.appendChild(button);
+        });
+
+        document.getElementById('f-title').addEventListener('input', function () {
+            // Keep the folder name in step with the title until it is edited directly.
+            if (!document.getElementById('f-slug').dataset.touched) {
+                state.slug = slugify(state.title);
+                document.getElementById('f-slug').value = state.slug;
+            }
+            onChange();
+        });
+        document.getElementById('f-slug').addEventListener('input', function () {
+            this.dataset.touched = '1';
+        });
+
+        document.getElementById('add-schedule').addEventListener('click', function () {
+            state.schedule.items.push(newScheduleItem());
+            renderSchedule();
+            onChange();
+        });
+        document.getElementById('add-venue').addEventListener('click', function () {
+            state.venues.items.push(newVenue(state.venues.items.length + 1));
+            renderVenues();
+            renderSchedule();
+            onChange();
+        });
+        document.getElementById('add-phone').addEventListener('click', function () {
+            state.contact.phones.push({ label: '', number: '' });
+            renderPhones();
+            onChange();
+        });
+
+        document.getElementById('f-photo-file').addEventListener('change', function () {
+            var file = this.files && this.files[0];
+            if (!file) return;
+            readImage(file, function (dataUri) {
+                state.photo.image = dataUri;
+                renderPhotoThumb();
+                onChange();
+                flash('Photo added');
+            });
+            this.value = '';
+        });
+        document.getElementById('photo-clear').addEventListener('click', function () {
+            state.photo.image = '';
+            renderPhotoThumb();
+            onChange();
+        });
+        document.getElementById('f-photo-path').addEventListener('input', function () {
+            state.photo.image = this.value;
+            onChange();
+        });
+        document.getElementById('f-gallery-files').addEventListener('change', function () {
+            Array.prototype.forEach.call(this.files || [], function (file) {
+                readImage(file, function (dataUri) {
+                    state.photo.gallery.push({ src: dataUri, alt: '' });
+                    renderGalleryThumbs();
+                    onChange();
+                });
+            });
+            this.value = '';
+        });
+
+        document.getElementById('download-all').addEventListener('click', function () {
+            var slug = cleanConfig().slug;
+            download('event.js', configFileText(), 'text/javascript');
+            setTimeout(function () { download('index.html', SHELL, 'text/html'); }, 400);
+            flash('Downloaded — drop both into events/' + slug + '/');
+        });
+
+        document.getElementById('copy-snippet').addEventListener('click', function () {
+            var box = document.getElementById('f-index-snippet');
+            box.select();
+            try {
+                document.execCommand('copy');
+                flash('Copied');
+            } catch (error) {
+                flash('Select and copy manually');
+            }
+        });
+
+        document.getElementById('reset').addEventListener('click', function () {
+            if (!window.confirm('Clear this event and start over?')) return;
+            state = blank();
+            document.getElementById('f-slug').dataset.touched = '';
+            reloadEverything();
+        });
+
+        document.getElementById('load-phil').addEventListener('click', function () {
+            loadExternalConfig('events/phil-mcallister-90th/event.js');
+        });
+
+        document.getElementById('import').addEventListener('click', function () {
+            var input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.js,.json,text/javascript,application/json';
+            input.addEventListener('change', function () {
+                var file = this.files && this.files[0];
+                if (!file) return;
+                var reader = new FileReader();
+                reader.onload = function () {
+                    try {
+                        adopt(parseConfigText(reader.result));
+                        flash('Loaded ' + file.name);
+                    } catch (error) {
+                        window.alert('Could not read that file as an event config.');
+                    }
+                };
+                reader.readAsText(file);
+            });
+            input.click();
+        });
+
+        Array.prototype.forEach.call(document.querySelectorAll('[data-width]'), function (button) {
+            button.addEventListener('click', function () {
+                Array.prototype.forEach.call(document.querySelectorAll('[data-width]'), function (other) {
+                    other.setAttribute('aria-pressed', String(other === button));
+                });
+                document.getElementById('preview').style.width = button.getAttribute('data-width');
+            });
+        });
+    }
+
+    // An event.js file is a single assignment, so the object literal can be
+    // pulled out and evaluated on its own.
+    function parseConfigText(text) {
+        var start = text.indexOf('=');
+        var body = start === -1 ? text : text.slice(start + 1);
+        body = body.replace(/;\s*$/, '');
+        /* jshint evil:true */
+        return (new Function('return (' + body + ');'))();
+    }
+
+    function adopt(config) {
+        var base = blank();
+        Object.keys(config).forEach(function (key) {
+            if (config[key] && typeof config[key] === 'object' && !Array.isArray(config[key])) {
+                base[key] = Object.assign(base[key] || {}, config[key]);
+            } else {
+                base[key] = config[key];
+            }
+        });
+        base.photo.gallery = base.photo.gallery || [];
+        base.schedule.items = base.schedule.items || [];
+        base.venues.items = base.venues.items || [];
+        base.contact.phones = base.contact.phones || [];
+        state = base;
+        document.getElementById('f-slug').dataset.touched = '1';
+        reloadEverything();
+    }
+
+    function loadExternalConfig(url) {
+        var script = document.createElement('script');
+        script.src = url;
+        script.onload = function () {
+            if (window.URINVITED_EVENT) {
+                adopt(JSON.parse(JSON.stringify(window.URINVITED_EVENT)));
+                flash('Example loaded');
+            }
+            script.remove();
+        };
+        script.onerror = function () {
+            flash('Could not load the example');
+            script.remove();
+        };
+        document.head.appendChild(script);
+    }
+
+    /* ---------- start ---------- */
+
+    wire();
+
+    var saved = null;
+    try { saved = localStorage.getItem(DRAFT_KEY); } catch (error) { saved = null; }
+    if (saved) {
+        try {
+            adopt(JSON.parse(saved));
+            flash('Draft restored');
+        } catch (error) {
+            reloadEverything();
+        }
+    } else {
+        reloadEverything();
+    }
+})();
+</script>
+</body>
+</html>
