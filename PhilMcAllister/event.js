@@ -5,7 +5,7 @@
    ========================================================================== */
 
 window.URINVITED_EVENT = {
-    slug: 'phil-mcallister-90th',
+    slug: 'PhilMcAllister',
     title: "Phil's 90th Birthday Celebration",
     logo: "Phil McAllister's 90th",
 

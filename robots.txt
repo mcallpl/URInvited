@@ -1,0 +1,5 @@
+# Invitations carry home addresses and phone numbers, and some of them are
+# surprises. Nothing here should turn up in a search result — links are meant
+# to be given out directly.
+User-agent: *
+Disallow: /

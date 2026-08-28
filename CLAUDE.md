@@ -19,22 +19,35 @@ does not mean copying and editing 1,200 lines of HTML.
 ## Architecture
 
 ```
-index.html                 hub — lists events from assets/events-index.js
-builder.html               form UI that generates a new event's two files
+index.html                 the workspace — behind HTTP Basic auth
+builder.html               builder UI — behind auth
 assets/event.css           design system; every colour is a CSS variable
 assets/event.js            renderer: config object -> the entire page
-assets/events-index.js     which events the hub shows
-events/<slug>/index.html   15-line shell, IDENTICAL for every event
-events/<slug>/event.js     100% of that event's content, as data
-events/_template/          copy-to-start folder
+assets/events-index.js     the event roster — behind auth
+<EventName>/index.html     15-line shell, IDENTICAL for every event
+<EventName>/event.js       100% of that event's content, as data
+robots.txt                 Disallow: / — invitations must not be indexed
 images/ public/            photos, favicons, og-image
+deploy/setup-ssl.sh        server setup: TLS, nginx vhost, workspace password
+deploy/event-template/     copy-to-start folder
 deploy.sh                  rsync to the DO box
 ```
+
+**Event folders live at the document root, not under `events/`.** The folder
+name is the public URL: `PhilMcAllister/` is served at `/PhilMcAllister/`. This
+is deliberate — an nginx rewrite could map a prettier URL onto a nested folder,
+but then `python3 -m http.server` would not reproduce production and local
+preview would silently disagree with the live site. Plain folders behave
+identically everywhere.
+
+Because events are one level below the root, the shell sets
+`URINVITED_BASE = '../'`. If that depth ever changes, the shell, the template
+and `builder.html`'s `SHELL` constant all change together.
 
 The contract between the shell and the renderer is two globals:
 
 ```js
-window.URINVITED_BASE  = '../../';   // path from this page back to site root
+window.URINVITED_BASE  = '../';      // path from this page back to site root
 window.URINVITED_EVENT = { ... };    // the config
 ```
 
@@ -75,6 +88,25 @@ the confetti, the video modal, lazy maps, the mailto form and smooth scroll.
    page on an apostrophe and is an injection risk if a config is ever
    generated from untrusted input.
 
+## Two audiences — do not conflate them
+
+The workspace is private; the invitations are not. Guests must never meet a
+password prompt, so nginx protects specific paths (`/`, `/index.html`,
+`/builder.html`, `/assets/events-index.js`) rather than the whole site. Event
+folders and the shared `assets/`, `images/` and `public/` they load stay public.
+
+Consequences worth remembering:
+
+- Never move a file an event page needs behind auth. If `assets/event.css` or
+  `assets/event.js` were protected, every guest would get an unstyled or blank
+  page — and you would only notice while logged in, because your own browser
+  still sends credentials.
+- Verify auth changes from a **credential-free** browser context, not just by
+  reloading your own tab.
+- The password lives only as a bcrypt hash in `/etc/nginx/.htpasswd-urinvited`,
+  written by `deploy/setup-ssl.sh`. Never commit a password or a hash. To
+  rotate: `RESET_PASSWORD=1 bash setup-ssl.sh`.
+
 ## Traps that already bit us
 
 - **Never put a render-blocking webfont in the builder's preview document.**
@@ -109,7 +141,7 @@ Playwright lives at `/opt/node22/lib/node_modules/playwright`; the browser is
 `/opt/pw-browsers/chromium-1194/chrome-linux/chrome` (note the version suffix —
 the bare `/opt/pw-browsers/chromium/…` path does not exist).
 
-Worth asserting after any renderer change, on `events/phil-mcallister-90th/`:
+Worth asserting after any renderer change, on `PhilMcAllister/`:
 7 `<section>`s, 3 `.event-card`s, 3 `.venue-content`s, 5 nav links,
 `--primary` = `#D4AF37`, and no page errors. For builder changes, also check
 the preview iframe reaches `readyState: complete` with a non-empty
@@ -193,6 +225,30 @@ Verify config changes by running them, not by reading them: `nginx -t` with a
 self-signed cert at the expected path catches syntax, and serving the repo on
 a high port catches header and ordering mistakes.
 
+### Serving layout
+
+`deploy/nginx/urinvited.peoplestar.com.conf` is the vhost;
+`deploy/nginx/snippets/urinvited-headers.conf` holds the shared response
+headers and is included in every location that sets a header of its own,
+because nginx's `add_header` replaces the inherited set rather than merging.
+
+Auth is applied with exact (`=`) locations, which outrank the regex blocks, so
+each of them repeats the shared headers and its own `Cache-Control`.
+
+Verified behaviour, worth re-checking after any vhost edit — anonymously and
+then authenticated:
+
+```
+anonymous:  /  /index.html  /builder.html  /assets/events-index.js   -> 401
+            /PhilMcAllister/  /assets/event.css  /images/*  /robots.txt -> 200
+            /deploy/*  /CLAUDE.md  /README.md  dotfiles              -> 403
+mcallpl:    /  /index.html  /builder.html  /assets/events-index.js   -> 200
+            /PhilMcAllister (no slash)                     -> 301 to the slash
+```
+
+That trailing-slash 301 matters: without it the browser resolves `event.js`
+against the site root instead of the event folder, and the page breaks.
+
 ## Open decisions
 
 - **Phil's copy is deliberately stale.** The June 5–7 2026 weekend has passed,
@@ -201,8 +257,17 @@ a high port catches header and ordering mistakes.
   restructure; rewriting it as a past-tense recap is a pending decision for
   the owner, and is now a `event.js` edit rather than HTML surgery.
 
-- **The root URL changed meaning.** It used to serve Phil's invitation
-  directly; it now serves the hub, with Phil's at
-  `events/phil-mcallister-90th/`. Guests holding the old link land one click
-  away. If that turns out to matter, redirect root rather than reverting the
-  structure.
+- **The old subdirectory URL now lands on a password prompt.**
+  `webapps.peoplestar.com/URInvited/` used to serve Phil's invitation
+  directly. That vhost is untouched and still serves the files, but the file
+  at the root is now the workspace. Any guest still using that old link will
+  be asked for a password instead of seeing the invitation.
+
+  The fix is to hand out `https://urinvited.peoplestar.com/PhilMcAllister/`.
+  If old links are genuinely still circulating, add a redirect from
+  `/URInvited/` to the event on that vhost — do not reintroduce a public page
+  at the workspace root.
+
+- **Slugs are case-sensitive.** `/PhilMcAllister/` works; `/philmcallister/`
+  is a 404. If mistyped URLs become a nuisance, a case-insensitive redirect
+  map in nginx is the place to fix it, not a rename.

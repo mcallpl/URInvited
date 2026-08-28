@@ -1,11 +1,13 @@
 /* ==========================================================================
-   UR Invited — the list of events shown on the home page.
-   Add one entry per event. The builder prints this block for you.
+   UR Invited — the events this workspace knows about.
+   Add one entry per event; the builder prints the block for you.
+   The slug is also the public URL: slug 'PhilMcAllister' is served at
+   https://urinvited.peoplestar.com/PhilMcAllister/
    ========================================================================== */
 
 window.URINVITED_EVENTS = [
     {
-        slug: 'phil-mcallister-90th',
+        slug: 'PhilMcAllister',
         title: "Phil's 90th Birthday Celebration",
         dates: 'June 5–7, 2026',
         blurb: 'Three days in Concord and Lafayette for Phil McAllister — ' +

@@ -271,6 +271,7 @@
     <h1>UR Invited <span>· Event Builder</span></h1>
     <div class="topbar-actions">
         <span class="status" id="status"></span>
+        <a class="btn-back" href="index.html" style="color:#fff;opacity:0.75;font-size:0.85rem;text-decoration:none;margin-right:0.3rem">← Workspace</a>
         <button type="button" id="load-phil">Load an example</button>
         <button type="button" id="import">Import event.js</button>
         <button type="button" id="reset">Start over</button>
@@ -295,9 +296,10 @@
                         <input type="text" id="f-logo" data-path="logo" placeholder="Anna's Retirement">
                     </div>
                     <div class="field">
-                        <label for="f-slug">Folder name</label>
-                        <input type="text" id="f-slug" data-path="slug" placeholder="annas-retirement">
-                        <p class="hint">Lives at <code>events/<span id="slug-echo">your-slug</span>/</code></p>
+                        <label for="f-slug">Web address</label>
+                        <input type="text" id="f-slug" data-path="slug" placeholder="AnnasRetirement">
+                        <p class="hint">Guests visit <code>/<span id="slug-echo">your-slug</span>/</code> — this is also the folder name.</p>
+                        <p class="hint" id="slug-warning" style="color:#b3261e;font-weight:600" hidden></p>
                     </div>
                 </div>
                 <div class="field">
@@ -521,7 +523,7 @@
             <div class="card-body">
                 <ul class="export-list">
                     <li><b>1.</b> Press <b>Download event files</b> — you get <code>index.html</code> and <code>event.js</code>.</li>
-                    <li><b>2.</b> Put both in a new folder: <code>events/<span class="slug-echo">your-slug</span>/</code></li>
+                    <li><b>2.</b> Put both in a folder named <code><span class="slug-echo">your-slug</span></code> at the top level of the site.</li>
                     <li><b>3.</b> Add one line to <code>assets/events-index.js</code> so it shows on the home page, then run <code>./deploy.sh</code>.</li>
                 </ul>
                 <div class="field" style="margin-top:1rem">
@@ -620,12 +622,30 @@
         node[last] = value;
     }
 
+    // The slug IS the public web address (/PhilMcAllister/), so it keeps its
+    // capitals rather than being lowercased into a hyphenated form.
+    var RESERVED = ['assets', 'images', 'public', 'deploy', 'events',
+                    'index', 'builder', 'favicon'];
+
     function slugify(text) {
-        return String(text || '').toLowerCase().trim()
+        return String(text || '')
             .replace(/['’]/g, '')
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '')
+            .split(/[^A-Za-z0-9]+/)
+            .filter(Boolean)
+            .map(function (word) { return word.charAt(0).toUpperCase() + word.slice(1); })
+            .join('')
             .slice(0, 60);
+    }
+
+    function slugProblem(slug) {
+        if (!slug) return 'Give this event a web address.';
+        if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(slug)) {
+            return 'Use only letters, numbers, dots, dashes and underscores.';
+        }
+        if (RESERVED.indexOf(slug.toLowerCase()) !== -1) {
+            return '"' + slug + '" is reserved by the site \u2014 pick another address.';
+        }
+        return '';
     }
 
     function splitLines(text) {
@@ -895,7 +915,7 @@
         '    <link rel="preconnect" href="https://fonts.googleapis.com">',
         '    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
         '    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">',
-        '    <link rel="stylesheet" href="../../assets/event.css">',
+        '    <link rel="stylesheet" href="../assets/event.css">',
         '</head>',
         '<body>',
         '    <div id="event-root"></div>',
@@ -905,9 +925,9 @@
         '            <p>Please enable JavaScript to see the event details.</p>',
         '        </div>',
         '    </noscript>',
-        '    <script>window.URINVITED_BASE = \'../../\';<\/script>',
+        '    <script>window.URINVITED_BASE = \'../\';<\/script>',
         '    <script src="event.js"><\/script>',
-        '    <script src="../../assets/event.js"><\/script>',
+        '    <script src="../assets/event.js"><\/script>',
         '</body>',
         '</html>',
         ''
@@ -975,6 +995,11 @@
     function onChange() {
         var slug = state.slug || slugify(state.title) || 'your-slug';
         document.getElementById('slug-echo').textContent = slug;
+
+        var warning = document.getElementById('slug-warning');
+        var problem = slugProblem(state.slug || slugify(state.title));
+        warning.textContent = problem;
+        warning.hidden = !problem;
         Array.prototype.forEach.call(document.querySelectorAll('.slug-echo'), function (node) {
             node.textContent = slug;
         });
@@ -1087,7 +1112,7 @@
             var slug = cleanConfig().slug;
             download('event.js', configFileText(), 'text/javascript');
             setTimeout(function () { download('index.html', SHELL, 'text/html'); }, 400);
-            flash('Downloaded — drop both into events/' + slug + '/');
+            flash('Downloaded — drop both into a folder named ' + slug);
         });
 
         document.getElementById('copy-snippet').addEventListener('click', function () {
@@ -1109,7 +1134,7 @@
         });
 
         document.getElementById('load-phil').addEventListener('click', function () {
-            loadExternalConfig('events/phil-mcallister-90th/event.js');
+            loadExternalConfig('PhilMcAllister/event.js');
         });
 
         document.getElementById('import').addEventListener('click', function () {
@@ -1191,6 +1216,22 @@
     /* ---------- start ---------- */
 
     wire();
+
+    // The workspace links here as builder.html?load=PhilMcAllister to edit an
+    // event in place; that takes priority over any saved draft.
+    var requested = null;
+    try {
+        requested = new URLSearchParams(window.location.search).get('load');
+    } catch (error) {
+        requested = null;
+    }
+    if (requested && /^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(requested)) {
+        // Render a usable form first: loadExternalConfig is asynchronous, and
+        // if the event cannot be fetched the builder must still be usable.
+        reloadEverything();
+        loadExternalConfig(requested + '/event.js');
+        return;
+    }
 
     var saved = null;
     try { saved = localStorage.getItem(DRAFT_KEY); } catch (error) { saved = null; }

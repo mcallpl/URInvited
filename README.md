@@ -1,52 +1,73 @@
 # UR Invited
 
-One-page invitation sites, one folder per event. No build step, no framework,
-no database — a browser and a text editor are the whole toolchain.
+One-page invitation sites. A private workspace for the host, a public page per
+event. No build step, no framework, no database — a browser and a text editor
+are the whole toolchain.
 
 ```
-index.html                  home page, lists every event
-builder.html                form UI that creates a new event
+index.html                  the workspace — PASSWORD PROTECTED
+builder.html                form UI that creates a new event — protected
+robots.txt                  keeps invitations out of search results
 assets/
   event.css                 the design system (every colour is a CSS variable)
   event.js                  the renderer — turns a config object into the page
-  events-index.js           which events appear on the home page
-events/
-  phil-mcallister-90th/     Phil's 90th, June 5–7 2026 — the first event
-    index.html              15-line shell, identical for every event
-    event.js                all of the content, as data
-  _template/                copy this folder to start a new event by hand
+  events-index.js           which events the workspace lists — protected
+PhilMcAllister/             an event. The folder name IS the public URL.
+  index.html                15-line shell, identical for every event
+  event.js                  all of the content, as data
 images/  public/            photos, favicons, social image
+deploy/
+  setup-ssl.sh              one-shot server setup: TLS, nginx, password
+  nginx/                    the vhost it installs
+  event-template/           copy this to start an event by hand
 deploy.sh                   rsync to the Digital Ocean box
 ```
 
+## The two audiences
+
+| | URL | Password? |
+| --- | --- | --- |
+| You | `https://urinvited.peoplestar.com/` | yes |
+| Guests | `https://urinvited.peoplestar.com/PhilMcAllister/` | **no** |
+
+Guests must never hit a password prompt, so only the workspace, the builder and
+the event roster are protected. Event pages and the shared assets they need are
+public — anyone with the link can open an invitation.
+
 ## Making a new event
 
-**The quick way.** Open `builder.html` in a browser and fill in the form. The
-preview updates as you type. Press **Download event files** and you get an
+**The quick way.** Open the workspace and press **New event**. Fill in the form;
+the preview updates as you type. Press **Download event files** for an
 `index.html` and an `event.js`.
 
-1. Make a folder: `events/your-event-name/`
-2. Put both downloaded files in it.
-3. Paste the line the builder prints into `assets/events-index.js` so the event
-   shows up on the home page.
-4. Run `./deploy.sh`.
+1. Make a folder named exactly how the URL should read: `AnnasRetirement/`
+2. Put both downloaded files in it, at the top level of the site.
+3. Paste the line the builder prints into `assets/events-index.js`.
+4. Run `./deploy.sh`, or push to `main`.
+
+That event is then live at `https://urinvited.peoplestar.com/AnnasRetirement/`.
 
 Photos picked in the builder are resized and embedded directly in `event.js`,
-so there is no separate upload step. If you would rather keep a photo as a
-file, drop it in `images/` and type the path (`images/anna.jpg`) instead.
+so there is no separate upload step. To keep a photo as a file instead, drop it
+in `images/` and type the path (`images/anna.jpg`).
 
-**By hand.** Copy `events/_template/` to `events/your-event-name/` and edit
-`event.js`. The template has a comment on every field. The builder can also
-load an existing `event.js` back in for editing — use **Import event.js**.
+**Folder names are URLs.** Use letters, numbers, dots, dashes and underscores,
+and avoid the reserved names `assets`, `images`, `public`, `deploy`, `events`,
+`index`, `builder` and `favicon`. The builder warns you. They are also
+case-sensitive: `/PhilMcAllister/` works, `/philmcallister/` does not.
+
+**By hand.** Copy `deploy/event-template/` to a new top-level folder and edit
+`event.js`; every field is commented. To edit an existing event, press **Edit**
+in the workspace — that opens it in the builder — or edit its `event.js`.
 
 ## What is configurable
 
-Everything on the page comes from `event.js`. Nothing is hard-coded in the
-renderer or the stylesheet.
+Everything on an event page comes from its `event.js`. Nothing is hard-coded in
+the renderer or the stylesheet.
 
 | Key | What it controls |
 | --- | --- |
-| `title`, `logo`, `slug` | Browser tab, header text, folder name |
+| `title`, `logo`, `slug` | Browser tab, header text, folder name and URL |
 | `theme` | Six colours that re-skin the entire page |
 | `meta` | Description and image used when the link is shared |
 | `hero` | Badge, headline, subtitle, opening paragraph |
@@ -60,7 +81,7 @@ renderer or the stylesheet.
 | `confetti` | The falling confetti animation |
 
 Any section can be switched off with `enabled: false`, and the navigation
-adjusts itself to whatever is left.
+adjusts to whatever is left.
 
 ### A few details worth knowing
 
@@ -69,66 +90,57 @@ adjusts itself to whatever is left.
   venue to override with a specific embed URL.
 - **Event cards link to venues.** Give a schedule item a `venueId` matching a
   venue's `id` and the card becomes a link down to that venue block.
-- **The contact form opens the guest's mail app** — it is a `mailto:` link, so
-  there is no server to run. Set `contact.form.email` to the address replies
-  should go to.
+- **The contact form opens the guest's mail app** — a `mailto:` link, so there
+  is no server to run. Set `contact.form.email` to the address replies go to.
 - **Image paths are relative to the site root** (`images/anna.jpg`), not to the
   event folder. Full URLs and embedded `data:` images work too.
-- **Maps and the video recorder load only when needed** — maps when they scroll
-  into view, the recorder when someone opens it — so the page stays quick.
-- **Reduced motion is respected**: confetti and animations switch off for
-  visitors who ask their system for less movement.
-
-## Editing an existing event
-
-Change its `event.js` and run `./deploy.sh`. Changing the look of *every* event
-at once means editing `assets/event.css` or `assets/event.js`.
+- **Maps and the video recorder load only when needed**, so pages stay quick.
+- **Reduced motion is respected**: animations switch off for visitors who ask
+  their system for less movement.
 
 ## Local preview
 
 The pages load their config with `<script src>`, which browsers block on
-`file://`, so serve the folder rather than double-clicking the file:
+`file://`, so serve the folder rather than double-clicking:
 
 ```sh
 python3 -m http.server 8000
-# then open http://localhost:8000/
+# http://localhost:8000/            the workspace (no password locally)
+# http://localhost:8000/PhilMcAllister/   an event
 ```
+
+Event folders sit at the top level precisely so these URLs match production
+without needing nginx rewrites.
 
 ## Deploying
 
-`./deploy.sh` rsyncs the folder to the Digital Ocean host and fixes ownership.
-It needs SSH access to that box. Pushes to `main` also deploy automatically
-via `.github/workflows/deploy.yml`.
+`./deploy.sh` rsyncs to the Digital Ocean host. Pushes to `main` also deploy via
+`.github/workflows/deploy.yml`.
 
-All paths in this project are relative, so the same files serve correctly from
-both a domain root and a subdirectory. Avoid introducing absolute paths that
-start with `/` — they break the subdirectory URL.
+All paths are relative, so the same files serve correctly from a domain root and
+from a subdirectory. Never introduce absolute paths starting with `/`.
 
-## Hosting — urinvited.peoplestar.com
+## Server setup
 
-The site is reachable at two URLs, both served from the same directory:
-
-- `https://urinvited.peoplestar.com/` — the subdomain
-- `https://webapps.peoplestar.com/URInvited/` — the original path, kept
-  working so links already given to guests still resolve
-
-To set the subdomain up on a fresh server, copy `deploy/` over and run the
-script as root:
+To stand up the subdomain, TLS and the workspace password on a fresh server,
+copy `deploy/` over and run it as root:
 
 ```sh
 scp -r deploy root@64.227.108.128:/tmp/urinvited-deploy
-ssh root@64.227.108.128 'CERTBOT_EMAIL=you@example.com bash /tmp/urinvited-deploy/setup-ssl.sh'
+ssh -t root@64.227.108.128 'CERTBOT_EMAIL=you@example.com bash /tmp/urinvited-deploy/setup-ssl.sh'
 ```
 
-It finds the document root, obtains a Let's Encrypt certificate over the
-webroot challenge, installs the nginx vhost, and verifies the result. It is
-idempotent, re-uses an existing certificate, and never reloads nginx without
-`nginx -t` passing first. Pass `DOCROOT=...` to override the detected root.
+It finds the document root, obtains a Let's Encrypt certificate over the webroot
+challenge, installs the nginx vhost, **prompts for the workspace password**, and
+verifies that the workspace is protected while events are not. It is idempotent,
+backs up the nginx config, and never reloads without `nginx -t` passing.
 
-`deploy/nginx/urinvited.peoplestar.com.conf` is the vhost it installs:
-HTTP redirects to HTTPS, HTML/CSS/JS revalidate on every request (nothing is
-content-hashed, and `event.js` *is* an event's content), images cache for 30
-days, and the working files — `*.md`, `deploy.sh`, dotfiles — are not served.
+The password is never stored in this repository — only a bcrypt hash on the
+server at `/etc/nginx/.htpasswd-urinvited`. To change it later:
+
+```sh
+ssh -t root@64.227.108.128 'RESET_PASSWORD=1 bash /tmp/urinvited-deploy/setup-ssl.sh'
+```
 
 HSTS and a Content-Security-Policy are present but commented out, with the
-directives worked out. Read the notes in the file before enabling either.
+directives worked out. Read the notes in `deploy/nginx/` before enabling either.
