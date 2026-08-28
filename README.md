@@ -97,6 +97,38 @@ python3 -m http.server 8000
 ## Deploying
 
 `./deploy.sh` rsyncs the folder to the Digital Ocean host and fixes ownership.
-It needs SSH access to that box. The site is served under a subdirectory, so
-all paths in this project are relative — avoid introducing absolute ones
-starting with `/`.
+It needs SSH access to that box. Pushes to `main` also deploy automatically
+via `.github/workflows/deploy.yml`.
+
+All paths in this project are relative, so the same files serve correctly from
+both a domain root and a subdirectory. Avoid introducing absolute paths that
+start with `/` — they break the subdirectory URL.
+
+## Hosting — urinvited.peoplestar.com
+
+The site is reachable at two URLs, both served from the same directory:
+
+- `https://urinvited.peoplestar.com/` — the subdomain
+- `https://webapps.peoplestar.com/URInvited/` — the original path, kept
+  working so links already given to guests still resolve
+
+To set the subdomain up on a fresh server, copy `deploy/` over and run the
+script as root:
+
+```sh
+scp -r deploy root@64.227.108.128:/tmp/urinvited-deploy
+ssh root@64.227.108.128 'CERTBOT_EMAIL=you@example.com bash /tmp/urinvited-deploy/setup-ssl.sh'
+```
+
+It finds the document root, obtains a Let's Encrypt certificate over the
+webroot challenge, installs the nginx vhost, and verifies the result. It is
+idempotent, re-uses an existing certificate, and never reloads nginx without
+`nginx -t` passing first. Pass `DOCROOT=...` to override the detected root.
+
+`deploy/nginx/urinvited.peoplestar.com.conf` is the vhost it installs:
+HTTP redirects to HTTPS, HTML/CSS/JS revalidate on every request (nothing is
+content-hashed, and `event.js` *is* an event's content), images cache for 30
+days, and the working files — `*.md`, `deploy.sh`, dotfiles — are not served.
+
+HSTS and a Content-Security-Policy are present but commented out, with the
+directives worked out. Read the notes in the file before enabling either.

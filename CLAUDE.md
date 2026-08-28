@@ -7,7 +7,9 @@ current structure and the traps that are easy to fall back into.
 
 Static one-page invitation sites, one folder per event. No build step, no
 framework, no server-side code, no database. Plain HTML/CSS/JS served by
-nginx from a subdirectory on a Digital Ocean box.
+nginx on a Digital Ocean box, at both a subdomain root
+(`urinvited.peoplestar.com`) and a subdirectory
+(`webapps.peoplestar.com/URInvited/`) out of one document root.
 
 It used to be a single hand-written `index.html` for Phil McAllister's 90th
 with every name, date, address and colour baked into the markup. It was
@@ -46,10 +48,12 @@ the confetti, the video modal, lazy maps, the mailto form and smooth scroll.
    colours belong in `events/<slug>/event.js`. If you find yourself typing
    "Phil" into `assets/event.js`, stop — add a config field instead.
 
-2. **No absolute paths starting with `/`.** The site is served from a
-   subdirectory (`https://webapps.peoplestar.com/URInvited/`), so `/public/…`
-   resolves to the domain root and 404s. The pre-restructure page had exactly
-   this bug in its favicon links. Everything is relative; keep it that way.
+2. **No absolute paths starting with `/`.** The same files are served from a
+   subdirectory (`https://webapps.peoplestar.com/URInvited/`) as well as a
+   domain root, so `/public/…` resolves to the domain root and 404s under the
+   subdirectory URL. The pre-restructure page had exactly this bug in its
+   favicon links. Everything is relative; keep it that way, or the subdirectory
+   URL guests already hold silently breaks.
 
 3. **Colours go through CSS variables, including the RGB triplets.**
    Translucent surfaces use `rgba(var(--primary-rgb), 0.15)`. `applyTheme()`
@@ -158,6 +162,36 @@ has confirmed which nginx serves. Until that is settled the workflow:
 
 Read that log after a run, set `DEPLOY_TARGET`, and only then consider adding
 `--delete` so repo deletions propagate.
+
+## nginx / TLS (urinvited.peoplestar.com)
+
+`deploy/nginx/*.conf` plus `deploy/setup-ssl.sh` stand up the subdomain. The
+vhost points at the same document root as the existing
+`webapps.peoplestar.com/URInvited/` path, so both URLs serve one directory and
+old guest links keep working. Nothing in the site needed changing for this —
+all paths are already relative, which is why invariant 2 matters.
+
+Things established by actually running nginx 1.24 against these files:
+
+- **`http2 on;` does not exist before nginx 1.25.1.** Ubuntu 24.04 ships
+  1.24.0, where it is an unknown directive and nginx refuses to start. Use
+  `listen 443 ssl http2;`, which newer nginx still accepts.
+- **No IPv6 listeners.** `urinvited.peoplestar.com` has an A record and no
+  AAAA, so `listen [::]:443` would serve nobody, and nginx fails to start
+  outright on a host without IPv6.
+- **`add_header` in a `location` replaces the server-level set, it does not
+  merge.** Every location that adds a cache header must repeat the three
+  security headers or silently drop them.
+- **Regex `location` blocks are tried in file order.** The deny rules must
+  come before the caching rules, or `.aios_relay/…json` matches the `json$`
+  cache rule and gets served. This was a real bug, caught by requesting the
+  file through a running nginx.
+- **Do not use `expires` together with `add_header Cache-Control`** — both
+  emit the header and the response carries it twice.
+
+Verify config changes by running them, not by reading them: `nginx -t` with a
+self-signed cert at the expected path catches syntax, and serving the repo on
+a high port catches header and ordering mistakes.
 
 ## Open decisions
 
